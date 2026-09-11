@@ -503,8 +503,8 @@ const sectionsMeta = [
 
    FIELD GUIDE:
      id          - unique, no spaces (used for URLs/filenames). Keep it
-                   short and unique, e.g. 'willow-730'
-     name        - the plan's display name, e.g. 'Willow 730'
+                   short and unique, e.g. '207-Connaught'
+     name        - the plan's display name, e.g. '207 Connaught'
      category    - one of: compact | modern | luxury | pool | commercial
      sqft        - number, no commas
      beds/baths  - numbers (baths can be 2.5 etc). Commercial plans use
@@ -518,10 +518,10 @@ const sectionsMeta = [
 
    YOUR OWN PHOTOS:
      Create a folder next to this HTML file called "images", and inside
-     it, one sub-folder per house using its "id". Example for Willow 730:
-        images/willow-730/hero.jpg
-        images/willow-730/exterior.jpg
-        images/willow-730/elevation.jpg
+     it, one sub-folder per house using its "id". Example for 207 Connaught:
+        images/207-Connaught/hero.jpg
+        images/207-Connaught/exterior.jpg
+        images/207-Connaught/elevation.jpg
      The card + detail page pull from these three files automatically.
      Any images not yet added will just show a blank/broken image box
      until you drop the files in — nothing else will break.
@@ -529,20 +529,20 @@ const sectionsMeta = [
    YOUR OWN PDFs:
      Create a folder next to this HTML file called "plans", and inside
      it, one PDF per house named after its "id". Example:
-        plans/willow-730.pdf
+        plans/207-Connaught.pdf
      The "Download Floor Plan" button on the detail page automatically
      links to this file and downloads it when clicked.
    ================================================================ */
 
-// Builds a local image path from a house id + filename, e.g. img('willow-730','hero')
+// Builds a local image path from a house id + filename, e.g. img('207-Connaught','hero')
 const img = (planId, file) => `images/${planId}/${file}.jpg`;
-// Builds a local PDF path from a house id, e.g. pdf('willow-730')
+// Builds a local PDF path from a house id, e.g. pdf('207-Connaught')
 const pdf = (planId) => `plans/${planId}.pdf`;
 
 const plans = [
-  {id:'willow-730', name:'Willow 730', category:'compact', sqft:730, beds:2, baths:1, stories:1, garage:0,
+  {id:'207-Connaught', name:'207 Connaught', category:'compact', sqft:730, beds:2, baths:1, stories:1, garage:0,
    desc:'A single-story retreat with an open kitchen and a covered porch, built for easy living in under 800 square feet.',
-   hero:img('willow-730','hero'), exterior:img('willow-730','exterior'), elevation:img('willow-730','elevation'), pdf:pdf('willow-730')},
+   hero:img('207-Connaught','hero'), exterior:img('207-Connaught','exterior'), elevation:img('207-Connaught','elevation'), pdf:pdf('207-Connaught')},
   {id:'meadow-800', name:'Meadow 800', category:'compact', sqft:800, beds:2, baths:1, stories:1, garage:0,
    desc:'Warm, light-filled interiors with a walk-out patio and a flexible bonus nook for a home office.',
    hero:img('meadow-800','hero'), exterior:img('meadow-800','exterior'), elevation:img('meadow-800','elevation'), pdf:pdf('meadow-800')},

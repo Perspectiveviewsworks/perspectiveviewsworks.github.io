@@ -1,7 +1,14 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<!--
+  ============================================================
+  BROWSER TAB TITLE — edit the text below (keeps the same format:
+  "Your Company Name — Floor Plans")
+  ============================================================
+-->
 <title>Fenwick House Co. — Floor Plans</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -66,10 +73,11 @@
   .nav-row{display:flex;align-items:center;justify-content:space-between;gap:24px;}
   .brand{display:flex;align-items:center;gap:10px;font-family:'Fraunces',serif;font-size:20px;letter-spacing:0.3px;color:var(--cream);}
   .brand-mark{
-    width:30px;height:30px;flex:none;border:1px solid var(--gold);
+    width:34px;height:34px;flex:none;border:1px solid var(--gold);
     display:flex;align-items:center;justify-content:center;border-radius:2px;
+    overflow:hidden;background:var(--navy-2);
   }
-  .brand-mark svg{width:16px;height:16px;stroke:var(--gold);}
+  .brand-mark img{width:100%;height:100%;object-fit:contain;}
   .nav-links{display:flex;gap:34px;list-style:none;margin:0;padding:0;}
   .nav-links a{
     font-size:13.5px;color:var(--slate);letter-spacing:0.2px;
@@ -307,11 +315,26 @@
 </head>
 <body>
 
+<!--
+  ================================================================
+  HEADER / LOGO / COMPANY NAME — EDIT HERE
+  ================================================================
+  1) Create a folder named "images" next to this HTML file.
+  2) Put your logo file inside it and name it exactly:  logo.png
+     (square image works best, roughly 100x100px, transparent background)
+  3) Change the text "Fenwick House Co." below to your company name.
+     NOTE: this same name also appears in 3 other spots — each one
+     is marked with an "EDIT: company name" comment so you can find
+     them all (header, mobile menu is name-free, footer x2).
+  ================================================================
+-->
 <header id="site-header">
   <div class="wrap nav-row">
     <a href="#" class="brand" onclick="showList();window.scrollTo(0,0);">
-      <span class="brand-mark"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.4"><path d="M3 11L12 4l9 7"/><path d="M5 10v9h14v-9"/></svg></span>
-      Fenwick House Co.
+      <span class="brand-mark">
+        <img src="images/logo.png" alt="Company logo" onerror="this.style.display='none'">
+      </span>
+      <!-- EDIT: company name -->Fenwick House Co.
     </a>
     <nav>
       <ul class="nav-links">
@@ -379,7 +402,8 @@
     </div>
 
     <div class="detail-actions">
-      <a class="btn btn-primary" href="#" onclick="return false;">Download Floor Plan</a>
+      <!-- href gets set automatically per-house by openDetail() below, pointing at plans/<id>.pdf -->
+      <a class="btn btn-primary" id="d-download-btn" href="#" download>Download Floor Plan</a>
       <a class="btn" href="#contact" onclick="showList();">Request More Information</a>
       <a class="btn" href="#contact" onclick="showList();">Customize This Plan</a>
     </div>
@@ -420,8 +444,8 @@
     </div>
     <div class="footer-grid">
       <div class="footer-col">
-        <h4>Fenwick House Co.</h4>
-        <p>An architecture studio designing considered, livable homes — from compact retreats to custom residences, shaped around how people actually live.</p>
+        <h4><!-- EDIT: company name -->Fenwick House Co.</h4>
+        <p><!-- EDIT: short company description -->An architecture studio designing considered, livable homes — from compact retreats to custom residences, shaped around how people actually live.</p>
         <div class="social-row">
           <a href="#" aria-label="Instagram"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="0.8" fill="currentColor" stroke="none"/></svg></a>
           <a href="#" aria-label="Pinterest"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M9 17c1-3 1.2-5 2-9a2.5 2.5 0 1 1 4 2c-.3 1.5-1.5 3-3 3"/></svg></a>
@@ -448,11 +472,12 @@
       </div>
       <div class="footer-col">
         <h4>Contact</h4>
+        <!-- EDIT: contact details -->
         <p>studio@fenwickhouseco.com<br>+1 (406) 555-0148<br>Bozeman, Montana</p>
       </div>
     </div>
     <div class="footer-bottom">
-      <span>© 2026 Fenwick House Co. All rights reserved.</span>
+      <span>© 2026 <!-- EDIT: company name -->Fenwick House Co. All rights reserved.</span>
       <span>Original architectural plans, drawn and licensed in-house.</span>
     </div>
   </div>
@@ -477,59 +502,104 @@ const sectionsMeta = [
   {id:'commercial-plans', catKey:'commercial', title:'Commercial Plans', desc:'Considered buildings for studios, offices, and small businesses.'}
 ];
 
-const img = (id) => `https://images.unsplash.com/${id}?auto=format&fit=crop&w=1200&q=80`;
+/* ================================================================
+   HOUSE DATA — EDIT HERE
+   ================================================================
+   This one list below controls EVERY house on the site: the cards,
+   the detail page, search, categories — all of it. To edit a house,
+   just change its values. To add a new house, copy one whole block
+   (from the opening { to the closing },) and edit the copy.
+
+   FIELD GUIDE:
+     id          - unique, no spaces (used for URLs/filenames). Keep it
+                   short and unique, e.g. 'willow-730'
+     name        - the plan's display name, e.g. 'Willow 730'
+     category    - one of: compact | modern | luxury | pool | commercial
+     sqft        - number, no commas
+     beds/baths  - numbers (baths can be 2.5 etc). Commercial plans use
+                   "baths" as restroom count and ignore "beds".
+     stories     - number of floors
+     garage      - number of garage spaces (0 if none)
+     use         - ONLY for category:'commercial' plans, e.g. 'Retail / Showroom'
+     desc        - one or two sentence description shown on the card
+     pdf         - path to the downloadable floor plan PDF (see below)
+     hero/exterior/elevation - image paths (see below)
+
+   YOUR OWN PHOTOS:
+     Create a folder next to this HTML file called "images", and inside
+     it, one sub-folder per house using its "id". Example for Willow 730:
+        images/willow-730/hero.jpg
+        images/willow-730/exterior.jpg
+        images/willow-730/elevation.jpg
+     The card + detail page pull from these three files automatically.
+     Any images not yet added will just show a blank/broken image box
+     until you drop the files in — nothing else will break.
+
+   YOUR OWN PDFs:
+     Create a folder next to this HTML file called "plans", and inside
+     it, one PDF per house named after its "id". Example:
+        plans/willow-730.pdf
+     The "Download Floor Plan" button on the detail page automatically
+     links to this file and downloads it when clicked.
+   ================================================================ */
+
+// Builds a local image path from a house id + filename, e.g. img('willow-730','hero')
+const img = (planId, file) => `images/${planId}/${file}.jpg`;
+// Builds a local PDF path from a house id, e.g. pdf('willow-730')
+const pdf = (planId) => `plans/${planId}.pdf`;
 
 const plans = [
   {id:'willow-730', name:'Willow 730', category:'compact', sqft:730, beds:2, baths:1, stories:1, garage:0,
    desc:'A single-story retreat with an open kitchen and a covered porch, built for easy living in under 800 square feet.',
-   hero:img('photo-1600585154340-be6161a56a0c'), exterior:img('photo-1600585154340-be6161a56a0c'), elevation:img('photo-1600566753086-00f18fb6b3ea')},
+   hero:img('willow-730','hero'), exterior:img('willow-730','exterior'), elevation:img('willow-730','elevation'), pdf:pdf('willow-730')},
   {id:'meadow-800', name:'Meadow 800', category:'compact', sqft:800, beds:2, baths:1, stories:1, garage:0,
    desc:'Warm, light-filled interiors with a walk-out patio and a flexible bonus nook for a home office.',
-   hero:img('photo-1600607687939-ce8a6c25118c'), exterior:img('photo-1600607687939-ce8a6c25118c'), elevation:img('photo-1600596542815-ffad4c1539a9')},
+   hero:img('meadow-800','hero'), exterior:img('meadow-800','exterior'), elevation:img('meadow-800','elevation'), pdf:pdf('meadow-800')},
   {id:'ridge-805', name:'Ridge 805', category:'compact', sqft:805, beds:2, baths:2, stories:1, garage:0,
    desc:'Dual primary suites make this an easy fit for roommates, guests, or a growing family.',
-   hero:img('photo-1600047509807-ba8f99d2cdde'), exterior:img('photo-1600047509807-ba8f99d2cdde'), elevation:img('photo-1583608205776-bfd35f0d9f83')},
+   hero:img('ridge-805','hero'), exterior:img('ridge-805','exterior'), elevation:img('ridge-805','elevation'), pdf:pdf('ridge-805')},
 
   {id:'cedarline-1450', name:'Cedarline 1450', category:'modern', sqft:1450, beds:3, baths:2, stories:1, garage:1,
    desc:'An open-plan single story with vaulted ceilings and a kitchen island built for gathering.',
-   hero:img('photo-1512917774080-9991f1c4c750'), exterior:img('photo-1512917774080-9991f1c4c750'), elevation:img('photo-1600585152915-d208bec867a1')},
+   hero:img('cedarline-1450','hero'), exterior:img('cedarline-1450','exterior'), elevation:img('cedarline-1450','elevation'), pdf:pdf('cedarline-1450')},
   {id:'harlow-1620', name:'Harlow 1620', category:'modern', sqft:1620, beds:3, baths:2, stories:2, garage:2,
    desc:'A two-story layout that separates living and sleeping levels, with a private upstairs landing.',
-   hero:img('photo-1523217582562-09d0def993a6'), exterior:img('photo-1523217582562-09d0def993a6'), elevation:img('photo-1613977257363-707ba9348227')},
+   hero:img('harlow-1620','hero'), exterior:img('harlow-1620','exterior'), elevation:img('harlow-1620','elevation'), pdf:pdf('harlow-1620')},
   {id:'kestrel-1780', name:'Kestrel 1780', category:'modern', sqft:1780, beds:3, baths:2.5, stories:2, garage:2,
    desc:'A flexible loft space over the garage adapts easily into a studio, office, or guest suite.',
-   hero:img('photo-1524230507669-475e94b73fc9'), exterior:img('photo-1524230507669-475e94b73fc9'), elevation:img('photo-1613490493576-7fde63acd811')},
+   hero:img('kestrel-1780','hero'), exterior:img('kestrel-1780','exterior'), elevation:img('kestrel-1780','elevation'), pdf:pdf('kestrel-1780')},
 
   {id:'oakridge-2850', name:'Oakridge 2850', category:'luxury', sqft:2850, beds:4, baths:3.5, stories:2, garage:3,
    desc:'A grand entry hall leads into a great room with floor-to-ceiling glazing and a formal dining wing.',
-   hero:img('photo-1600210492486-724fe5c67fb0'), exterior:img('photo-1600210492486-724fe5c67fb0'), elevation:img('photo-1600047509358-9dc75507daeb')},
+   hero:img('oakridge-2850','hero'), exterior:img('oakridge-2850','exterior'), elevation:img('oakridge-2850','elevation'), pdf:pdf('oakridge-2850')},
   {id:'ashcombe-3400', name:'Ashcombe 3400', category:'luxury', sqft:3400, beds:5, baths:4, stories:2, garage:3,
    desc:'A resort-style primary suite and a dedicated media room round out this expansive family residence.',
-   hero:img('photo-1502005229762-cf1b2da7c5d6'), exterior:img('photo-1502005229762-cf1b2da7c5d6'), elevation:img('photo-1570129477492-45c003edd2be')},
+   hero:img('ashcombe-3400','hero'), exterior:img('ashcombe-3400','exterior'), elevation:img('ashcombe-3400','elevation'), pdf:pdf('ashcombe-3400')},
   {id:'wrenfield-3950', name:'Wrenfield 3950', category:'luxury', sqft:3950, beds:5, baths:4.5, stories:2, garage:3,
    desc:'Designed for entertaining, with an indoor-outdoor great room and a private guest wing.',
-   hero:img('photo-1600566753190-17f0baa2a6c3'), exterior:img('photo-1600566753190-17f0baa2a6c3'), elevation:img('photo-1600585154340-be6161a56a0c')},
+   hero:img('wrenfield-3950','hero'), exterior:img('wrenfield-3950','exterior'), elevation:img('wrenfield-3950','elevation'), pdf:pdf('wrenfield-3950')},
 
   {id:'willowbrook-480', name:'Willowbrook 480', category:'pool', sqft:480, beds:1, baths:1, stories:1, garage:0,
    desc:'A garden suite with a kitchenette and covered lounge, ideal for guests or multigenerational living.',
-   hero:img('photo-1600596542815-ffad4c1539a9'), exterior:img('photo-1600596542815-ffad4c1539a9'), elevation:img('photo-1600607687939-ce8a6c25118c')},
+   hero:img('willowbrook-480','hero'), exterior:img('willowbrook-480','exterior'), elevation:img('willowbrook-480','elevation'), pdf:pdf('willowbrook-480')},
   {id:'sablewood-620', name:'Sablewood 620', category:'pool', sqft:620, beds:1, baths:1, stories:1, garage:0,
    desc:'A pool house with a full bath and shaded outdoor kitchen, built for warm-weather living.',
-   hero:img('photo-1583608205776-bfd35f0d9f83'), exterior:img('photo-1583608205776-bfd35f0d9f83'), elevation:img('photo-1600047509807-ba8f99d2cdde')},
+   hero:img('sablewood-620','hero'), exterior:img('sablewood-620','exterior'), elevation:img('sablewood-620','elevation'), pdf:pdf('sablewood-620')},
   {id:'fernwood-540', name:'Fernwood 540', category:'pool', sqft:540, beds:1, baths:1, stories:1, garage:0,
    desc:'A quiet studio suite tucked at the edge of the garden, wired for a home office or art studio.',
-   hero:img('photo-1600585152915-d208bec867a1'), exterior:img('photo-1600585152915-d208bec867a1'), elevation:img('photo-1512917774080-9991f1c4c750')},
+   hero:img('fernwood-540','hero'), exterior:img('fernwood-540','exterior'), elevation:img('fernwood-540','elevation'), pdf:pdf('fernwood-540')},
 
   {id:'the-atrium-4200', name:'The Atrium 4200', category:'commercial', sqft:4200, beds:0, baths:2, stories:2, garage:0, use:'Office / Studio',
    desc:'A daylit workspace built around a central atrium, with private offices ringing an open floor.',
-   hero:img('photo-1613977257363-707ba9348227'), exterior:img('photo-1613977257363-707ba9348227'), elevation:img('photo-1523217582562-09d0def993a6')},
+   hero:img('the-atrium-4200','hero'), exterior:img('the-atrium-4200','exterior'), elevation:img('the-atrium-4200','elevation'), pdf:pdf('the-atrium-4200')},
   {id:'harborline-5600', name:'Harborline 5600', category:'commercial', sqft:5600, beds:0, baths:3, stories:1, garage:0, use:'Retail / Showroom',
    desc:'A single-level showroom with generous street-facing glazing and a flexible back-of-house.',
-   hero:img('photo-1613490493576-7fde63acd811'), exterior:img('photo-1613490493576-7fde63acd811'), elevation:img('photo-1524230507669-475e94b73fc9')},
+   hero:img('harborline-5600','hero'), exterior:img('harborline-5600','exterior'), elevation:img('harborline-5600','elevation'), pdf:pdf('harborline-5600')},
   {id:'the-foundry-3100', name:'The Foundry 3100', category:'commercial', sqft:3100, beds:0, baths:2, stories:1, garage:0, use:'Studio / Workshop',
    desc:'A converted-barn aesthetic with tall ceilings, built for a maker studio or small business.',
-   hero:img('photo-1600047509358-9dc75507daeb'), exterior:img('photo-1600047509358-9dc75507daeb'), elevation:img('photo-1600210492486-724fe5c67fb0')},
+   hero:img('the-foundry-3100','hero'), exterior:img('the-foundry-3100','exterior'), elevation:img('the-foundry-3100','elevation'), pdf:pdf('the-foundry-3100')},
 ];
+/* ============== END OF HOUSE DATA — don't need to edit below this line ============== */
 
 /* ---------------- ICONS ---------------- */
 const icoBed = `<svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><path d="M3 18v-6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v6"/><path d="M3 18v2M21 18v2"/><path d="M3 12V8a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/><path d="M13 10h6"/></svg>`;
@@ -679,6 +749,11 @@ function openDetail(id){
   document.getElementById('detail-hero').querySelector('.hero-inner').innerHTML = `<h1 style="font-size:clamp(34px,5.5vw,54px);">${p.name}</h1>`;
 
   document.getElementById('d-name').textContent = p.name;
+
+  // Point the Download button at this house's PDF (plans/<id>.pdf)
+  const downloadBtn = document.getElementById('d-download-btn');
+  downloadBtn.href = p.pdf;
+  downloadBtn.setAttribute('download', p.name.replace(/\s+/g,'-') + '.pdf');
 
   const statHTML = p.category==='commercial'
     ? `<div class="stat"><div class="num">${p.sqft.toLocaleString()}</div><div class="lab">Sq Ft</div></div>

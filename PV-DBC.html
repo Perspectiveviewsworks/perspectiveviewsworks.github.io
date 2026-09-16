@@ -71,10 +71,13 @@
     border:1px solid var(--gold);
     color:var(--gold);
     background:transparent;
-    transition:background 0.2s ease;
+    cursor:pointer;
+    transition:background 0.2s ease, color 0.2s ease, transform 0.15s ease;
   }
   .action-buttons a:hover{
-    background:rgba(212,166,86,0.1);
+    background:var(--gold);
+    color:var(--bg);
+    transform:translateY(-1px);
   }
 
   /* ===== DETAILS ===== */
@@ -86,13 +89,24 @@
     display:flex;
     align-items:center;
     gap:12px;
-    padding:13px 0;
+    padding:13px 10px;
+    margin:0 -10px;
     border-bottom:1px solid var(--border);
+    border-radius:6px;
     font-size:0.9rem;
     color:var(--muted);
     text-decoration:none;
+    cursor:pointer;
+    transition:background 0.15s ease, color 0.15s ease;
   }
   .details .row:last-child{border-bottom:none;}
+  .details .row:hover{
+    background:rgba(212,166,86,0.08);
+    color:var(--text);
+  }
+  .details .row:hover .label{
+    color:var(--gold);
+  }
   .details .label{
     color:var(--text);
     font-weight:600;
@@ -100,6 +114,7 @@
     font-size:0.78rem;
     text-transform:uppercase;
     letter-spacing:0.4px;
+    transition:color 0.15s ease;
   }
 
   /* ===== LEADERSHIP (single boss) ===== */
@@ -140,6 +155,12 @@
     border:1px solid var(--gold);
     padding:4px 10px;
     border-radius:5px;
+    cursor:pointer;
+    transition:background 0.15s ease, color 0.15s ease;
+  }
+  .boss-contact a:hover{
+    background:var(--gold);
+    color:var(--bg);
   }
 
   /* ===== SOCIALS ===== */
@@ -158,10 +179,13 @@
     text-decoration:none;
     font-size:0.78rem;
     letter-spacing:0.3px;
+    cursor:pointer;
+    transition:border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
   }
   .socials a:hover{
     border-color:var(--gold);
     color:var(--gold);
+    background:rgba(212,166,86,0.08);
   }
 
   /* ===== QR CODE ===== */
@@ -237,7 +261,7 @@
 
   <!-- ===== QR CODE (points to this page once it's published online) ===== -->
   <div class="qr-section">
-    <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&color=212-166-86&bgcolor=15-25-46&data=https://perspectiveviewsworks.github.io/PV-DBC.html"
+    <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&color=212-166-86&bgcolor=15-25-46&data=https://www.yourcompany.com/business-card"
          alt="Scan QR Code">
     <p>Scan to save this card / visit our website</p>
   </div>

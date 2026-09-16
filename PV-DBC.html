@@ -3,15 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>COMPANY NAME - Digital Business Card</title>
+<title>Perspective Views - Digital Business Card</title>
 <style>
   :root{
-    --primary:#1a2b4c;
-    --accent:#c9a15a;
-    --bg:#f5f5f7;
-    --card-bg:#ffffff;
-    --text:#222;
-    --muted:#666;
+    --bg:#0d1526;
+    --card-bg:#0f192e;
+    --border:#2a3650;
+    --gold:#d4a656;
+    --text:#e8ecf3;
+    --muted:#8fa2c4;
   }
   *{box-sizing:border-box;margin:0;padding:0;}
   body{
@@ -25,224 +25,221 @@
     background:var(--card-bg);
     max-width:420px;
     width:100%;
-    border-radius:18px;
-    box-shadow:0 10px 30px rgba(0,0,0,0.12);
+    border-radius:14px;
+    border:1px solid var(--border);
     overflow:hidden;
   }
-  .cover{
-    /* company photo goes here */
-    background: url('COMPANY_PHOTO_URL_OR_FILENAME.jpg') center/cover no-repeat, var(--primary);
-    height:150px;
-    position:relative;
-  }
-  .logo-wrap{
-    position:absolute;
-    bottom:-45px;
-    left:50%;
-    transform:translateX(-50%);
-    width:90px;height:90px;
-    border-radius:50%;
-    border:4px solid var(--card-bg);
-    overflow:hidden;
-    background:#fff;
-    box-shadow:0 2px 8px rgba(0,0,0,0.2);
-  }
-  .logo-wrap img{width:100%;height:100%;object-fit:cover;}
-  .info{
+
+  /* ===== LOGO / HEADER ===== */
+  .header{
     text-align:center;
-    padding:60px 24px 20px;
+    padding:36px 24px 10px;
   }
-  .info h1{
-    font-size:1.4rem;
-    color:var(--primary);
+  .header img.logo{
+    max-width:140px;
+    max-height:140px;
+    object-fit:contain;
   }
-  .info p.tagline{
+  .header h1{
+    font-size:1.35rem;
+    color:var(--text);
+    margin-top:16px;
+    letter-spacing:0.5px;
+  }
+  .header p.tagline{
     color:var(--muted);
-    font-size:0.9rem;
+    font-size:0.88rem;
     margin-top:4px;
   }
 
+  /* ===== ACTION BUTTONS ===== */
   .action-buttons{
     display:flex;
-    gap:10px;
-    padding:0 24px 20px;
+    gap:12px;
+    padding:22px 24px 22px;
   }
   .action-buttons a{
     flex:1;
     text-align:center;
     padding:12px 0;
-    border-radius:10px;
+    border-radius:6px;
     text-decoration:none;
     font-weight:600;
-    font-size:0.9rem;
+    font-size:0.85rem;
+    letter-spacing:0.3px;
+    border:1px solid var(--gold);
+    color:var(--gold);
+    background:transparent;
+    transition:background 0.2s ease;
   }
-  .call-btn{background:var(--primary);color:#fff;}
-  .email-btn{background:var(--accent);color:#fff;}
+  .action-buttons a:hover{
+    background:rgba(212,166,86,0.1);
+  }
 
+  /* ===== DETAILS ===== */
   .details{
-    padding:0 24px 10px;
-    border-top:1px solid #eee;
+    padding:0 24px 6px;
+    border-top:1px solid var(--border);
   }
   .details .row{
     display:flex;
     align-items:center;
     gap:12px;
-    padding:12px 0;
-    border-bottom:1px solid #f0f0f0;
-    font-size:0.92rem;
-    color:var(--text);
+    padding:13px 0;
+    border-bottom:1px solid var(--border);
+    font-size:0.9rem;
+    color:var(--muted);
     text-decoration:none;
   }
   .details .row:last-child{border-bottom:none;}
-  .details .icon{
-    width:20px;text-align:center;color:var(--accent);font-size:1.1rem;
+  .details .label{
+    color:var(--text);
+    font-weight:600;
+    min-width:78px;
+    font-size:0.78rem;
+    text-transform:uppercase;
+    letter-spacing:0.4px;
   }
 
-  .bosses{
-    padding:10px 24px 20px;
+  /* ===== LEADERSHIP (single boss) ===== */
+  .boss-section{
+    padding:20px 24px;
+    border-top:1px solid var(--border);
   }
-  .bosses h3{
-    font-size:0.95rem;
-    color:var(--primary);
-    margin-bottom:12px;
+  .boss-section h3{
+    font-size:0.78rem;
+    color:var(--gold);
+    margin-bottom:14px;
     text-transform:uppercase;
-    letter-spacing:0.5px;
+    letter-spacing:0.6px;
   }
   .boss{
     display:flex;
     align-items:center;
-    gap:12px;
-    padding:10px 0;
+    gap:14px;
   }
   .boss img{
-    width:55px;height:55px;border-radius:50%;object-fit:cover;
-    border:2px solid var(--accent);
+    width:60px;height:60px;
+    border-radius:8px;
+    object-fit:cover;
   }
-  .boss .name{font-weight:600;font-size:0.92rem;}
-  .boss .title{font-size:0.8rem;color:var(--muted);}
+  .boss .name{font-weight:600;font-size:0.95rem;color:var(--text);}
+  .boss .title{font-size:0.8rem;color:var(--muted);margin-top:2px;}
   .boss-contact{
     margin-left:auto;
     display:flex;
-    gap:8px;
+    flex-direction:column;
+    gap:6px;
+    align-items:flex-end;
   }
   .boss-contact a{
-    width:34px;height:34px;
-    border-radius:50%;
-    background:var(--bg);
-    display:flex;align-items:center;justify-content:center;
     text-decoration:none;
-    color:var(--primary);
-    font-size:0.9rem;
+    color:var(--gold);
+    font-size:0.78rem;
+    border:1px solid var(--gold);
+    padding:4px 10px;
+    border-radius:5px;
   }
 
+  /* ===== SOCIALS ===== */
   .socials{
     display:flex;
     justify-content:center;
-    gap:14px;
-    padding:15px 24px 5px;
+    gap:12px;
+    padding:18px 24px 6px;
+    border-top:1px solid var(--border);
   }
   .socials a{
-    width:42px;height:42px;
-    border-radius:50%;
-    background:var(--primary);
-    color:#fff;
-    display:flex;align-items:center;justify-content:center;
+    padding:8px 14px;
+    border-radius:6px;
+    border:1px solid var(--border);
+    color:var(--muted);
     text-decoration:none;
-    font-size:1.1rem;
+    font-size:0.78rem;
+    letter-spacing:0.3px;
+  }
+  .socials a:hover{
+    border-color:var(--gold);
+    color:var(--gold);
   }
 
+  /* ===== QR CODE ===== */
   .qr-section{
     text-align:center;
-    padding:20px 24px 30px;
-    border-top:1px solid #eee;
-    margin-top:10px;
+    padding:24px 24px 32px;
+    border-top:1px solid var(--border);
+    margin-top:6px;
   }
-  .qr-section p{font-size:0.8rem;color:var(--muted);margin-top:8px;}
-  .qr-section img{width:130px;height:130px;}
+  .qr-section p{font-size:0.78rem;color:var(--muted);margin-top:10px;}
+  .qr-section img{width:130px;height:130px;border-radius:6px;}
 </style>
 </head>
 <body>
 
 <div class="card">
 
-  <!-- ===== COVER / COMPANY PHOTO ===== -->
-  <div class="cover">
-    <div class="logo-wrap">
-      <img src="COMPANY_LOGO_URL_OR_FILENAME.jpg" alt="Company Logo">
-    </div>
-  </div>
-
-  <!-- ===== COMPANY NAME ===== -->
-  <div class="info">
-    <h1>YOUR COMPANY NAME</h1>
-    <p class="tagline">Your tagline or slogan here</p>
+  <!-- ===== LOGO / COMPANY NAME =====
+       Replace the src below with your logo PNG (it already has its own border,
+       so no extra frame is added here). -->
+  <div class="header">
+    <img class="logo" src="COMPANY_LOGO.png" alt="Company Logo">
+    <h1>Perspective Views</h1>
+    <p class="tagline"></p>
   </div>
 
   <!-- ===== QUICK ACTIONS ===== -->
   <div class="action-buttons">
-    <a class="call-btn" href="tel:+10000000000">📞 Call Us</a>
-    <a class="email-btn" href="mailto:info@yourcompany.com">✉️ Email Us</a>
+    <a class="call-btn" href="tel:+16478940889">Call Us</a>
+    <a class="email-btn" href="info@perspectiveviews.com">Email Us</a>
   </div>
 
   <!-- ===== COMPANY DETAILS ===== -->
   <div class="details">
-    <a class="row" href="tel:+10000000000">
-      <span class="icon">📞</span> +1 (000) 000-0000
+    <a class="row" href="tel:+16478940889">
+      <span class="label">Phone</span> +1 (647) 894-0889
     </a>
-    <a class="row" href="mailto:info@yourcompany.com">
-      <span class="icon">✉️</span> info@yourcompany.com
+    <a class="row" href="info@perspectiveviews.com">
+      <span class="label">Email</span> info@yourcompany.com
     </a>
-    <a class="row" href="https://www.yourcompany.com" target="_blank">
-      <span class="icon">🌐</span> www.yourcompany.com
+    <a class="row" href="https://perspectiveviews.com" target="_blank">
+      <span class="label">Website</span> https://perspectiveviews.com
+    </a>
+    <a class="row" href="https://perspectiveviewsworks.github.io" target="_blank">
+      <span class="label">Portfolio</span> https://perspectiveviewsworks.github.io
     </a>
     <a class="row" href="https://maps.google.com/?q=YOUR+COMPANY+ADDRESS" target="_blank">
-      <span class="icon">📍</span> Your Company Address, City, Country
+      <span class="label">Address</span> 5359 Timberlea Blvd. Unit #23, Mississauga, Ontario L4W 4N5
     </a>
   </div>
 
-  <!-- ===== LEADERSHIP / BOSSES ===== -->
-  <div class="bosses">
+  <!-- ===== LEADERSHIP (single boss) ===== -->
+  <div class="boss-section">
     <h3>Leadership</h3>
-
     <div class="boss">
-      <img src="BOSS1_PHOTO_URL_OR_FILENAME.jpg" alt="Boss 1">
+      <img src="BOSS_PHOTO.jpg" alt="Boss Name">
       <div>
-        <div class="name">Boss One Name</div>
+        <div class="name">Matthew Ribau</div>
         <div class="title">CEO / Founder</div>
       </div>
       <div class="boss-contact">
-        <a href="tel:+10000000001" title="Call">📞</a>
-        <a href="mailto:boss1@yourcompany.com" title="Email">✉️</a>
+        <a href="tel:+16472552235">Call</a>
+        <a href="matthew@perspectiveviews.com">Email</a>
       </div>
     </div>
-
-    <div class="boss">
-      <img src="BOSS2_PHOTO_URL_OR_FILENAME.jpg" alt="Boss 2">
-      <div>
-        <div class="name">Boss Two Name</div>
-        <div class="title">Managing Director</div>
-      </div>
-      <div class="boss-contact">
-        <a href="tel:+10000000002" title="Call">📞</a>
-        <a href="mailto:boss2@yourcompany.com" title="Email">✉️</a>
-      </div>
-    </div>
-
-    <!-- Duplicate the .boss block above to add more leadership members -->
   </div>
 
-  <!-- ===== SOCIAL MEDIA LINKS ===== -->
+  <!-- ===== SOCIAL MEDIA LINKS =====
+       Add or remove <a> tags for other platforms as needed. -->
   <div class="socials">
-    <a href="https://facebook.com/yourpage" target="_blank" title="Facebook">f</a>
-    <a href="https://instagram.com/yourpage" target="_blank" title="Instagram">IG</a>
-    <a href="https://linkedin.com/company/yourpage" target="_blank" title="LinkedIn">in</a>
-    <a href="https://wa.me/10000000000" target="_blank" title="WhatsApp">WA</a>
-    <!-- Add or remove <a> tags for other platforms (Twitter/X, YouTube, TikTok, etc.) -->
+    <a href="https://www.facebook.com/PerspectiveViews/" target="_blank">Facebook</a>
+    <a href="https://www.instagram.com/perspectiveviewsinc/" target="_blank">Instagram</a>
+    <a href="https://ca.linkedin.com/company/perspective-views-inc." target="_blank">LinkedIn</a>
+    <a href="https://wa.me/10000000000" target="_blank">WhatsApp</a>
   </div>
 
   <!-- ===== QR CODE (points to this page once it's published online) ===== -->
   <div class="qr-section">
-    <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://www.yourcompany.com/business-card"
+    <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&color=212-166-86&bgcolor=15-25-46&data=https://www.yourcompany.com/business-card"
          alt="Scan QR Code">
     <p>Scan to save this card / visit our website</p>
   </div>

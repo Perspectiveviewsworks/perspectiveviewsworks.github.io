@@ -272,6 +272,11 @@
      The PDF is drawn onto a <canvas> by PDF.js, and every control
      (zoom, page nav, rotate, fit, fullscreen, download) is our own
      HTML/CSS in the site palette — no browser PDF plugin UI at all.
+
+     The stage height is set by JavaScript from the PDF's real page
+     dimensions, so an ARCH D landscape sheet (36" x 24", 1.5:1) sits
+     in a 1.5:1 stage and an ARCH D portrait sheet in a 1:1.5 stage.
+     The values below are only the fallback before a page is measured.
      ================================================================ */
   .pdf-card{
     background:var(--navy-2);
@@ -349,7 +354,7 @@
     background:
       radial-gradient(ellipse at 50% 0%, rgba(196,164,104,0.07) 0%, transparent 60%),
       linear-gradient(180deg, var(--navy-3) 0%, #0D1728 100%);
-    height:74vh;min-height:460px;
+    height:64vh;min-height:320px;
     overflow:auto;
     display:flex;align-items:flex-start;justify-content:center;
     padding:28px;
@@ -362,7 +367,7 @@
   .pdf-stage::-webkit-scrollbar-track{background:transparent;}
   .pdf-stage::-webkit-scrollbar-thumb{background:var(--line);border-radius:6px;}
   .pdf-stage::-webkit-scrollbar-thumb:hover{background:var(--slate-dim);}
-  @media(max-width:640px){.pdf-stage{height:58vh;padding:14px;}}
+  @media(max-width:640px){.pdf-stage{height:52vh;min-height:240px;padding:14px;}}
 
   .pdf-canvas-holder{
     position:relative;
@@ -411,9 +416,6 @@
   @media(max-width:560px){.spec-list{grid-template-columns:1fr;}}
   .spec-list li{display:flex;justify-content:space-between;padding-bottom:12px;border-bottom:1px solid var(--line-soft);font-size:14px;color:#CBD3E3;}
   .spec-list li b{color:var(--cream);font-weight:500;}
-
-  .related-head{margin:0 0 30px;}
-  .related-head h2{font-size:26px;color:var(--cream);font-weight:400;}
 
   footer{background:var(--navy-0);border-top:1px solid var(--line-soft);padding:80px 0 30px;margin-top:20px;}
   .footer-cta{text-align:center;padding-bottom:70px;border-bottom:1px solid var(--line-soft);margin-bottom:60px;}
@@ -508,15 +510,18 @@
     </div>
 
     <!--
-      DETAIL TABS: Exterior (photo) | Site Plan | Floor Plan | Individual Units | Elevations | Specifications
-      Site Plan, Floor Plan, Elevations and each Unit are all PDFs, shown in an
-      embedded viewer with the browser's own zoom controls (zoom in/out,
-      fit width, page navigation) built in automatically — no extra setup needed.
+      DETAIL TABS: Exterior | Site Plan | Floor Plans | Individual Units | Elevations | Specifications
+
+      Every drawing tab is file-driven: when a project opens, each tab is shown
+      only if that project actually has drawings for it in its `docs` data.
+      A project with no unit PDFs never shows Individual Units; a project with
+      no elevation PDFs never shows Elevations. Nothing here has to be edited
+      per project.
     -->
     <div class="tabs" id="d-tabs">
       <button class="tab-btn active" data-tab="exterior">Exterior</button>
       <button class="tab-btn" data-tab="siteplan">Site Plan</button>
-      <button class="tab-btn" data-tab="floorplan">Floor Plan</button>
+      <button class="tab-btn" data-tab="floorplan">Floor Plans</button>
       <button class="tab-btn" data-tab="units">Individual Units</button>
       <button class="tab-btn" data-tab="elevations">Elevations</button>
       <button class="tab-btn" data-tab="specs">Specifications</button>
@@ -548,10 +553,7 @@
       <ul class="spec-list" id="d-specs"></ul>
     </div>
 
-    <div class="related-head">
-      <h2>Related Floor Plans</h2>
-    </div>
-    <div class="card-grid" id="related-grid" style="margin-bottom:80px;"></div>
+    <div style="height:40px;"></div>
   </div>
 </div>
 
@@ -641,15 +643,30 @@ const sectionsMeta = [
 
    YOUR OWN PDFs  (plans/<id>/...):
         plans/207-Connaught/site-plan.pdf
-        plans/207-Connaught/floor-1.pdf, floor-2.pdf, ...
+        plans/207-Connaught/floor-0.pdf, floor-1.pdf, floor-2.pdf, ...
         plans/207-Connaught/elevation-north.pdf, elevation-south.pdf,
                             elevation-east.pdf,  elevation-west.pdf
         plans/207-Connaught/unit-1.pdf, unit-2.pdf, ...
    Each PDF opens in the site's own viewer (zoom, pages, rotate, fullscreen).
-   How many buttons each tab shows is set per project below:
-        floors:makeFloors('207-Connaught',2)              -> Floor 1, Floor 2
-        units:makeUnits('207-Connaught',3)                -> Unit 1, Unit 2, Unit 3
-        elevations:makeElevations('207-Connaught',ALL_FACES) -> N / S / E / W
+
+   WHICH TABS APPEAR IS DRIVEN BY THIS DATA:
+        docs.sitePlan   present  -> Site Plan tab
+        docs.floors     non-empty-> Floor Plans tab
+        docs.units      non-empty-> Individual Units tab
+        docs.elevations non-empty-> Elevations tab
+   Leave a key out (or set it to []) and that tab disappears for that
+   project, along with its content. Nothing else needs editing.
+
+   HOW MANY BUTTONS EACH TAB SHOWS:
+        floors:makeFloors('207-Connaught',2)        -> Floor 1, Floor 2
+        floors:makeFloors('207-Connaught',[0,1,2])  -> Floor 0 (basement),
+                                                       Floor 1, Floor 2
+                                                       (floor-0.pdf, floor-1.pdf, floor-2.pdf)
+        floors:makeFloors('207-Connaught',3,0)      -> same as [0,1,2]
+        units:makeUnits('207-Connaught',3)          -> Unit 1, Unit 2, Unit 3
+        elevations:makeElevations('207-Connaught',ALL_FACES)  -> N / S / E / W
+        elevations:makeElevations('207-Connaught',['North','South'])
+                                                    -> North, South only
    If a tab only has one drawing, the button row hides itself automatically.
    ================================================================ */
 
@@ -660,26 +677,40 @@ const doc = (planId, file) => `plans/${planId}/${file}.pdf`;
    Each builds the row of buttons shown above the viewer, plus the PDF each
    button opens. Change the numbers / labels to match what each project has.
 
-   makeFloors(id, 2)  -> "Floor 1", "Floor 2"
-                         plans/<id>/floor-1.pdf, floor-2.pdf
-   makeUnits(id, 3)   -> "Unit 1", "Unit 2", "Unit 3"
-                         plans/<id>/unit-1.pdf, unit-2.pdf, unit-3.pdf
-   makeElevations(id, ['North','South','East','West'])
-                      -> "North", "South", "East", "West"
-                         plans/<id>/elevation-north.pdf, elevation-south.pdf, ...
+   makeFloors(id, 2)        -> "Floor 1", "Floor 2"
+                               plans/<id>/floor-1.pdf, floor-2.pdf
+   makeFloors(id, [0,1,2])  -> "Floor 0", "Floor 1", "Floor 2"
+                               plans/<id>/floor-0.pdf, floor-1.pdf, floor-2.pdf
+   makeFloors(id, 3, 0)     -> three floors starting at 0 (same as above)
+   makeUnits(id, 3)         -> "Unit 1", "Unit 2", "Unit 3"
+                               plans/<id>/unit-1.pdf, unit-2.pdf, unit-3.pdf
+   makeUnits(id, [2,3])     -> only unit-2.pdf and unit-3.pdf
+   makeElevations(id, ['North','South'])
+                            -> "North", "South"
+                               plans/<id>/elevation-north.pdf, elevation-south.pdf
 
    You can also write the list by hand for custom names, e.g.
-     floors:[{label:'Basement', file:doc('16-West','floor-basement')},
-             {label:'Ground',   file:doc('16-West','floor-ground')}]
+     floors:[{label:'Basement', file:doc('16-West','floor-0')},
+             {label:'Ground',   file:doc('16-West','floor-1')}]
 */
-const makeFloors = (planId, count) =>
-  Array.from({length:count}, (_,i)=>({label:`Floor ${i+1}`, file:doc(planId, `floor-${i+1}`)}));
 
-const makeUnits = (planId, count) =>
-  Array.from({length:count}, (_,i)=>({label:`Unit ${i+1}`, file:doc(planId, `unit-${i+1}`)}));
+/* Accepts either a count (optionally with a starting number) or an explicit
+   list of numbers, so a project can start at Floor 0 (basement) or skip
+   numbers entirely. */
+const numberList = (spec, startAt) => {
+  if(Array.isArray(spec)) return spec;
+  const n = Number(spec) || 0;
+  return Array.from({length:n}, (_,i)=> i + startAt);
+};
+
+const makeFloors = (planId, spec, startAt = 1) =>
+  numberList(spec, startAt).map(n=>({label:`Floor ${n}`, file:doc(planId, `floor-${n}`)}));
+
+const makeUnits = (planId, spec, startAt = 1) =>
+  numberList(spec, startAt).map(n=>({label:`Unit ${n}`, file:doc(planId, `unit-${n}`)}));
 
 const makeElevations = (planId, faces) =>
-  faces.map(f=>({label:f, file:doc(planId, `elevation-${f.toLowerCase().replace(/\s+/g,'-')}`)}));
+  (faces || []).map(f=>({label:f, file:doc(planId, `elevation-${f.toLowerCase().replace(/\s+/g,'-')}`)}));
 
 const ALL_FACES = ['North','South','East','West'];
 
@@ -869,6 +900,13 @@ function specsFor(p){
    Controls: previous/next page, jump to page, zoom in/out, fit width,
    fit page, rotate, fullscreen, download. Plus drag-to-pan,
    ctrl/cmd + scroll-wheel zoom, and arrow-key page navigation.
+
+   PROPORTIONS: the stage is sized from the PDF's own page dimensions
+   (PDF.js viewport), so an ARCH D landscape sheet — 36" x 36" wide by
+   24" tall, a 1.5:1 ratio — gets a 1.5:1 stage and fills it edge to
+   edge with no letterboxing. Nothing is stretched or cropped: the page
+   is always drawn at a single uniform scale, and rotating re-measures
+   the page so a rotated sheet gets a stage matching its new ratio.
    ================================================================ */
 
 if(window.pdfjsLib){
@@ -942,6 +980,7 @@ function buildPdfViewer(container, title, fileUrl){
   let rendering = false, pendingPage = null;
 
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const stagePad = () => (window.innerWidth <= 640 ? 14 : 28);
 
   function showError(msg){
     loading.style.display = 'none';
@@ -959,6 +998,8 @@ function buildPdfViewer(container, title, fileUrl){
     if(!pdfDoc) return;
     rendering = true;
     pdfDoc.getPage(num).then(page=>{
+      // One uniform scale on both axes: the drawing keeps its true
+      // proportions at every zoom level and rotation.
       const viewport = page.getViewport({scale:scale, rotation:rotation});
       canvas.width  = Math.floor(viewport.width  * dpr);
       canvas.height = Math.floor(viewport.height * dpr);
@@ -994,6 +1035,7 @@ function buildPdfViewer(container, title, fileUrl){
   }
 
   function setScale(s){
+    if(!isFinite(s) || s <= 0) return;
     scale = Math.min(Math.max(s, 0.15), 6);
     queueRender(pageNum);
   }
@@ -1001,33 +1043,58 @@ function buildPdfViewer(container, title, fileUrl){
   // When a viewer is built inside a hidden tab, the stage measures 0px.
   // Fall back to the nearest visible container so the first fit is correct.
   function availableWidth(){
+    const pad = stagePad() * 2;
     let w = stage.clientWidth;
-    if(w > 0) return w - 56;
+    if(w > 0) return w - pad;
     const fallback = container.closest('.wrap') || container.parentElement;
     w = fallback ? fallback.clientWidth : 0;
-    return (w > 0 ? w : 900) - 56;
+    return (w > 0 ? w : 900) - pad;
   }
   function availableHeight(){
+    const pad = stagePad() * 2;
     const h = stage.clientHeight;
-    if(h > 0) return h - 56;
-    return Math.round(window.innerHeight * 0.74) - 56;
+    if(h > 0) return h - pad;
+    return Math.round(window.innerHeight * 0.64) - pad;
   }
 
-  function fitWidth(){
+  /* Sizes the stage to the drawing's real proportions. An ARCH D landscape
+     sheet (1.5:1) gets a 1.5:1 stage, a portrait sheet a taller one — so the
+     page sits in the viewer at its natural shape instead of being squeezed
+     into a fixed box. Height is clamped so very tall sheets still fit on
+     screen (they simply scroll). */
+  function applyStageProportions(baseViewport){
+    if(card.classList.contains('fullscreen')) return;
+    const w = availableWidth();
+    if(w <= 0 || !baseViewport.width || !baseViewport.height) return;
+    const pageRatio = baseViewport.width / baseViewport.height;   // 1.5 for ARCH D landscape
+    const pad = stagePad() * 2;
+    const wanted = Math.round(w / pageRatio) + pad;
+    const maxH = Math.round(window.innerHeight * 0.84);
+    const minH = window.innerWidth <= 640 ? 240 : 320;
+    stage.style.height = Math.max(minH, Math.min(wanted, maxH)) + 'px';
+  }
+
+  // mode: 'width' fits the sheet across the stage; 'page' fits the whole
+  // sheet. Both measure the PDF's actual page size, never a fixed ratio.
+  function fitTo(mode){
     if(!pdfDoc) return;
     pdfDoc.getPage(pageNum).then(page=>{
       const base = page.getViewport({scale:1, rotation:rotation});
-      setScale(availableWidth() / base.width);
-    });
+      applyStageProportions(base);
+      // Re-measure after the stage height changes, then scale to fit.
+      requestAnimationFrame(()=>{
+        const w = availableWidth();
+        const h = availableHeight();
+        const s = (mode === 'page')
+          ? Math.min(w / base.width, h / base.height)
+          : (w / base.width);
+        setScale(s);
+      });
+    }).catch(err=>console.error(err));
   }
 
-  function fitPage(){
-    if(!pdfDoc) return;
-    pdfDoc.getPage(pageNum).then(page=>{
-      const base = page.getViewport({scale:1, rotation:rotation});
-      setScale(Math.min(availableWidth()/base.width, availableHeight()/base.height));
-    });
-  }
+  const fitWidth = ()=>fitTo('width');
+  const fitPage  = ()=>fitTo('page');
 
   // Lets the tab switcher re-fit a viewer once its panel actually becomes visible.
   container._pdfRefit = fitWidth;
@@ -1043,13 +1110,21 @@ function buildPdfViewer(container, title, fileUrl){
     if(act==='zoomout') setScale(scale/1.25);
     if(act==='fitwidth') fitWidth();
     if(act==='fitpage')  fitPage();
-    if(act==='rotate'){ rotation = (rotation+90)%360; queueRender(pageNum); }
+    if(act==='rotate'){
+      rotation = (rotation+90)%360;
+      queueRender(pageNum);
+      // A rotated sheet has a new ratio, so re-shape the stage around it.
+      setTimeout(fitPage, 30);
+    }
     if(act==='fullscreen'){
       card.classList.toggle('fullscreen');
       const on = card.classList.contains('fullscreen');
       btn.innerHTML = on ? PDF_ICONS.collapse : PDF_ICONS.expand;
       document.body.style.overflow = on ? 'hidden' : '';
-      setTimeout(fitPage, 60);
+      // Fullscreen lets the stage fill the screen, so drop the measured
+      // height and let the flex layout take over; restore it on exit.
+      if(on) stage.style.height = '';
+      setTimeout(on ? fitPage : fitWidth, 60);
     }
   });
 
@@ -1086,9 +1161,24 @@ function buildPdfViewer(container, title, fileUrl){
       const fb = container.querySelector('[data-act="fullscreen"]');
       if(fb) fb.innerHTML = PDF_ICONS.expand;
       document.body.style.overflow = '';
-      setTimeout(fitPage, 60);
+      setTimeout(fitWidth, 60);
     }
   });
+
+  // ----- keep proportions correct when the window changes size -----
+  let resizeTimer = null;
+  function onResize(){
+    // Stop listening once this viewer has been replaced by a newer one.
+    if(!document.body.contains(card)){
+      window.removeEventListener('resize', onResize);
+      return;
+    }
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(()=>{
+      if(card.classList.contains('fullscreen')) fitPage(); else fitWidth();
+    }, 160);
+  }
+  window.addEventListener('resize', onResize);
 
   // ----- load the document -----
   if(!window.pdfjsLib){
@@ -1106,8 +1196,8 @@ function buildPdfViewer(container, title, fileUrl){
   });
 }
 
-/* Renders a row of section buttons (Floor 1 / Floor 2, Unit 1 / Unit 2,
-   North / South / East / West ...) above a single PDF viewer. Clicking a
+/* Renders a row of section buttons (Floor 0 / Floor 1 / Floor 2,
+   Unit 1 / Unit 2, North / South ...) above a single PDF viewer. Clicking a
    button loads that section's PDF into the viewer below. */
 function buildDocSection(rowId, wrapId, items){
   const row  = document.getElementById(rowId);
@@ -1138,6 +1228,20 @@ function buildDocSection(rowId, wrapId, items){
   });
 }
 
+/* Shows or hides one tab (button + panel). A hidden tab's drawings are never
+   loaded, so a project with no units or no elevations costs nothing extra. */
+function setTabAvailable(tab, available){
+  const btn   = document.querySelector(`.tab-btn[data-tab="${tab}"]`);
+  const panel = document.querySelector(`.tab-panel[data-panel="${tab}"]`);
+  if(btn)   btn.classList.toggle('hidden', !available);
+  if(panel){
+    panel.classList.toggle('hidden', !available);
+    if(!available) panel.classList.remove('active');
+  }
+}
+
+const hasDocs = (list)=>Array.isArray(list) && list.length > 0;
+
 function openDetail(id){
   const p = plans.find(x=>x.id===id);
   if(!p) return;
@@ -1166,13 +1270,31 @@ function openDetail(id){
   document.getElementById('d-exterior-img').src = p.exterior;
   document.getElementById('d-exterior-img').alt = p.name + ' exterior';
 
-  buildPdfViewer(document.getElementById('d-siteplan-wrap'), 'Site Plan', p.docs.sitePlan);
+  /* ---- File-driven tabs ----
+     Each drawing tab appears only if this project has drawings for it.
+     Nothing is hidden by hand, per project. */
+  const docs = p.docs || {};
+
+  const hasSitePlan   = !!docs.sitePlan;
+  const hasFloors     = hasDocs(docs.floors);
+  const hasUnits      = hasDocs(docs.units);
+  const hasElevations = hasDocs(docs.elevations);
+
+  setTabAvailable('siteplan',   hasSitePlan);
+  setTabAvailable('floorplan',  hasFloors);
+  setTabAvailable('units',      hasUnits);
+  setTabAvailable('elevations', hasElevations);
+
+  const siteWrap = document.getElementById('d-siteplan-wrap');
+  if(hasSitePlan) buildPdfViewer(siteWrap, 'Site Plan', docs.sitePlan);
+  else siteWrap.innerHTML = '';
 
   // Floor Plans, Individual Units and Elevations all work the same way:
   // a row of buttons, each swapping which PDF the viewer below shows.
-  buildDocSection('d-floor-row', 'd-floorplan-wrap',  p.docs.floors);
-  buildDocSection('d-unit-row',  'd-units-wrap',      p.docs.units);
-  buildDocSection('d-elev-row',  'd-elevations-wrap', p.docs.elevations);
+  // Passing an empty list clears the row and the viewer.
+  buildDocSection('d-floor-row', 'd-floorplan-wrap',  hasFloors     ? docs.floors     : []);
+  buildDocSection('d-unit-row',  'd-units-wrap',      hasUnits      ? docs.units      : []);
+  buildDocSection('d-elev-row',  'd-elevations-wrap', hasElevations ? docs.elevations : []);
 
   document.getElementById('d-specs').innerHTML = specsFor(p).map(([k,v])=>`<li><span>${k}</span><b>${v}</b></li>`).join('');
 
@@ -1180,9 +1302,6 @@ function openDetail(id){
   document.querySelector('.tab-btn[data-tab="exterior"]').classList.add('active');
   document.querySelectorAll('.tab-panel').forEach(pnl=>pnl.classList.remove('active'));
   document.querySelector('.tab-panel[data-panel="exterior"]').classList.add('active');
-
-  const related = plans.filter(x=>x.category===p.category && x.id!==p.id).slice(0,3);
-  document.getElementById('related-grid').innerHTML = related.map(cardHTML).join('');
 }
 
 function showList(){
@@ -1193,14 +1312,15 @@ function showList(){
 
 document.getElementById('d-tabs').addEventListener('click', e=>{
   const btn = e.target.closest('.tab-btn');
-  if(!btn) return;
+  if(!btn || btn.classList.contains('hidden')) return;
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
   const tab = btn.dataset.tab;
   document.querySelectorAll('.tab-panel').forEach(p=>p.classList.toggle('active', p.dataset.panel===tab));
 
   // A viewer built inside a hidden panel couldn't measure itself, so re-fit
-  // it to width now that the panel is actually on screen.
+  // it now that the panel is actually on screen — this is also what gives
+  // the drawing its correct proportions on first view.
   const panel = document.querySelector(`.tab-panel[data-panel="${tab}"]`);
   if(panel){
     panel.querySelectorAll('[id$="-wrap"]').forEach(w=>{

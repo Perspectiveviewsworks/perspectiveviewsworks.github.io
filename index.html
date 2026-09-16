@@ -653,7 +653,8 @@ const sectionsMeta = [
    When a project opens, the site checks which of these PDFs are really
    on the server and shows only those.
         site-plan.pdf  found            -> Site Plan tab
-        any floor-N.pdf found           -> Floor Plans tab (Floor 0 = basement)
+        any floor-N.pdf found           -> Floor Plans tab
+                                           (floor-0.pdf shows as "Basement")
         any unit-N.pdf found            -> Individual Units tab
         any elevation-<face>.pdf found  -> Elevations tab, one button per face
    Upload elevation-north.pdf and elevation-south.pdf only, and the tab
@@ -666,8 +667,7 @@ const sectionsMeta = [
 
    HOW MANY BUTTONS EACH TAB SHOWS:
         floors:makeFloors('207-Connaught',2)        -> Floor 1, Floor 2
-        floors:makeFloors('207-Connaught',[0,1,2])  -> Floor 0 (basement),
-                                                       Floor 1, Floor 2
+        floors:makeFloors('207-Connaught',[0,1,2])  -> Basement, Floor 1, Floor 2
                                                        (floor-0.pdf, floor-1.pdf, floor-2.pdf)
         floors:makeFloors('207-Connaught',3,0)      -> same as [0,1,2]
         units:makeUnits('207-Connaught',3)          -> Unit 1, Unit 2, Unit 3
@@ -686,7 +686,7 @@ const doc = (planId, file) => `plans/${planId}/${file}.pdf`;
 
    makeFloors(id, 2)        -> "Floor 1", "Floor 2"
                                plans/<id>/floor-1.pdf, floor-2.pdf
-   makeFloors(id, [0,1,2])  -> "Floor 0", "Floor 1", "Floor 2"
+   makeFloors(id, [0,1,2])  -> "Basement", "Floor 1", "Floor 2"
                                plans/<id>/floor-0.pdf, floor-1.pdf, floor-2.pdf
    makeFloors(id, 3, 0)     -> three floors starting at 0 (same as above)
    makeUnits(id, 3)         -> "Unit 1", "Unit 2", "Unit 3"
@@ -710,8 +710,11 @@ const numberList = (spec, startAt) => {
   return Array.from({length:n}, (_,i)=> i + startAt);
 };
 
+/* floor-0.pdf keeps its filename but reads as "Basement" on the site. */
+const floorLabel = (n)=> n === 0 ? 'Basement' : `Floor ${n}`;
+
 const makeFloors = (planId, spec, startAt = 1) =>
-  numberList(spec, startAt).map(n=>({label:`Floor ${n}`, file:doc(planId, `floor-${n}`)}));
+  numberList(spec, startAt).map(n=>({label:floorLabel(n), file:doc(planId, `floor-${n}`)}));
 
 const makeUnits = (planId, spec, startAt = 1) =>
   numberList(spec, startAt).map(n=>({label:`Unit ${n}`, file:doc(planId, `unit-${n}`)}));
@@ -984,7 +987,7 @@ function buildPdfViewer(container, title, fileUrl){
   const ctx     = canvas.getContext('2d');
 
   let pdfDoc = null, pageNum = 1, rotation = 0, scale = 1;
-  let rendering = false, pendingPage = null;
+  let rendering = false, pendingPage = null, renderTask = null;
 
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
   const stagePad = () => (window.innerWidth <= 640 ? 14 : 28);
@@ -1003,6 +1006,13 @@ function buildPdfViewer(container, title, fileUrl){
 
   function renderPage(num){
     if(!pdfDoc) return;
+    // Cancel any render still in flight. Without this, an older render can
+    // keep painting into the canvas after it has been resized for the new
+    // one, which leaves stray marks across the drawing.
+    if(renderTask){
+      try{ renderTask.cancel(); }catch(err){}
+      renderTask = null;
+    }
     rendering = true;
     pdfDoc.getPage(num).then(page=>{
       // One uniform scale on both axes: the drawing keeps its true
@@ -1013,14 +1023,23 @@ function buildPdfViewer(container, title, fileUrl){
       canvas.style.width  = Math.floor(viewport.width)  + 'px';
       canvas.style.height = Math.floor(viewport.height) + 'px';
       ctx.setTransform(dpr,0,0,dpr,0,0);
-      return page.render({canvasContext:ctx, viewport:viewport}).promise;
+      // Start from a clean white sheet every time.
+      ctx.clearRect(0, 0, viewport.width, viewport.height);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, viewport.width, viewport.height);
+      renderTask = page.render({canvasContext:ctx, viewport:viewport});
+      return renderTask.promise;
     }).then(()=>{
+      renderTask = null;
       rendering = false;
       loading.style.display = 'none';
       if(pendingPage !== null){ const n = pendingPage; pendingPage = null; renderPage(n); }
       updateUI();
     }).catch(err=>{
+      renderTask = null;
       rendering = false;
+      // A cancelled render is normal — it just means a newer one took over.
+      if(err && (err.name === 'RenderingCancelledException' || err.type === 'canvas')) return;
       showError('This drawing could not be displayed.');
       console.error(err);
     });
@@ -1028,7 +1047,7 @@ function buildPdfViewer(container, title, fileUrl){
 
   function queueRender(num){
     pageNum = num;
-    if(rendering){ pendingPage = num; } else { renderPage(num); }
+    renderPage(num);
     updateUI();
   }
 
@@ -1203,7 +1222,7 @@ function buildPdfViewer(container, title, fileUrl){
   });
 }
 
-/* Renders a row of section buttons (Floor 0 / Floor 1 / Floor 2,
+/* Renders a row of section buttons (Basement / Floor 1 / Floor 2,
    Unit 1 / Unit 2, North / South ...) above a single PDF viewer. Clicking a
    button loads that section's PDF into the viewer below. */
 function buildDocSection(rowId, wrapId, items){

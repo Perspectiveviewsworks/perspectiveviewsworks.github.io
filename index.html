@@ -649,13 +649,20 @@ const sectionsMeta = [
         plans/207-Connaught/unit-1.pdf, unit-2.pdf, ...
    Each PDF opens in the site's own viewer (zoom, pages, rotate, fullscreen).
 
-   WHICH TABS APPEAR IS DRIVEN BY THIS DATA:
-        docs.sitePlan   present  -> Site Plan tab
-        docs.floors     non-empty-> Floor Plans tab
-        docs.units      non-empty-> Individual Units tab
-        docs.elevations non-empty-> Elevations tab
-   Leave a key out (or set it to []) and that tab disappears for that
-   project, along with its content. Nothing else needs editing.
+   WHICH TABS APPEAR IS DRIVEN BY THE FILES THEMSELVES:
+   When a project opens, the site checks which of these PDFs are really
+   on the server and shows only those.
+        site-plan.pdf  found            -> Site Plan tab
+        any floor-N.pdf found           -> Floor Plans tab (Floor 0 = basement)
+        any unit-N.pdf found            -> Individual Units tab
+        any elevation-<face>.pdf found  -> Elevations tab, one button per face
+   Upload elevation-north.pdf and elevation-south.pdf only, and the tab
+   shows North and South. Upload none and the tab disappears. Add
+   floor-0.pdf later and a Floor 0 button appears on its own. Nothing
+   below has to be edited when files are added or removed.
+   (This check needs the site served over http(s). Opened straight off
+   disk with file://, the browser blocks it and the lists below are used
+   as-is.)
 
    HOW MANY BUTTONS EACH TAB SHOWS:
         floors:makeFloors('207-Connaught',2)        -> Floor 1, Floor 2
@@ -1242,6 +1249,98 @@ function setTabAvailable(tab, available){
 
 const hasDocs = (list)=>Array.isArray(list) && list.length > 0;
 
+/* ================================================================
+   FILE DETECTION — what actually exists on the server decides
+   which buttons and tabs appear.
+   ================================================================
+   When a project opens, the site checks (with a tiny HEAD request)
+   which of its drawings are really uploaded. Anything missing is
+   dropped: a missing elevation-north.pdf means no North button, and
+   if none of the four elevations exist the Elevations tab never
+   appears. Same for units, floors and the site plan.
+
+   It also looks beyond what's listed in the house data, so simply
+   uploading plans/<id>/floor-0.pdf makes a Floor 0 button appear
+   with no code change at all.
+
+   Note: this needs the site to be served over http(s). Opened
+   straight off disk (file://) the browser blocks these checks, so
+   the viewer falls back to whatever the house data lists.
+   ================================================================ */
+
+const PROBE_FLOORS = [0,1,2,3,4,5,6,7,8];
+const PROBE_UNITS  = [1,2,3,4,5,6,7,8,9,10,11,12];
+
+const fileCheckCache = new Map();
+
+/* true = file is there, false = not there, null = couldn't tell
+   (offline / file:// / blocked by the server). */
+function fileExists(url){
+  if(fileCheckCache.has(url)) return fileCheckCache.get(url);
+  const check = (async ()=>{
+    try{
+      let res = await fetch(url, {method:'HEAD'});
+      if(res.status === 405 || res.status === 501){
+        res = await fetch(url, {method:'GET', headers:{'Range':'bytes=0-0'}});
+      }
+      if(!res.ok) return false;
+      // Some hosts answer a missing file with an HTML error page and a 200.
+      const type = (res.headers.get('content-type') || '').toLowerCase();
+      if(type.includes('text/html')) return false;
+      return true;
+    }catch(err){
+      return null;
+    }
+  })();
+  fileCheckCache.set(url, check);
+  return check;
+}
+
+/* Combines the standard filenames the site looks for with anything the
+   house data lists by hand, keeping each file once and remembering
+   which ones came from the data. */
+function mergeCandidates(standard, listed){
+  const out = standard.map(it=>({...it, listed:false}));
+  const index = new Map(out.map((it,i)=>[it.file, i]));
+  (listed || []).forEach(it=>{
+    if(index.has(it.file)){
+      const at = index.get(it.file);
+      out[at] = {...out[at], label:it.label, listed:true};
+    } else {
+      out.push({...it, listed:true});
+    }
+  });
+  return out;
+}
+
+async function keepExisting(candidates){
+  const results = await Promise.all(candidates.map(it=>fileExists(it.file)));
+  return candidates.filter((it,i)=> results[i] === true || (results[i] === null && it.listed));
+}
+
+/* Works out, from the files on the server, which drawings this project has. */
+async function resolveProjectDocs(p){
+  const d = p.docs || {};
+  const candidates = {
+    sitePlan:   mergeCandidates([{label:'Site Plan', file:doc(p.id,'site-plan')}],
+                                d.sitePlan ? [{label:'Site Plan', file:d.sitePlan}] : []),
+    floors:     mergeCandidates(makeFloors(p.id, PROBE_FLOORS), d.floors),
+    units:      mergeCandidates(makeUnits(p.id, PROBE_UNITS), d.units),
+    elevations: mergeCandidates(makeElevations(p.id, ALL_FACES), d.elevations)
+  };
+  const [sitePlan, floors, units, elevations] = await Promise.all([
+    keepExisting(candidates.sitePlan),
+    keepExisting(candidates.floors),
+    keepExisting(candidates.units),
+    keepExisting(candidates.elevations)
+  ]);
+  return {sitePlan, floors, units, elevations};
+}
+
+// Guards against a slow check from a previously opened project
+// landing after the visitor has moved on to another one.
+let openDetailToken = 0;
+
 function openDetail(id){
   const p = plans.find(x=>x.id===id);
   if(!p) return;
@@ -1271,30 +1370,41 @@ function openDetail(id){
   document.getElementById('d-exterior-img').alt = p.name + ' exterior';
 
   /* ---- File-driven tabs ----
-     Each drawing tab appears only if this project has drawings for it.
-     Nothing is hidden by hand, per project. */
-  const docs = p.docs || {};
+     Each drawing tab appears only if the PDFs for it are actually on the
+     server. Nothing is hidden by hand, per project. */
+  const token = ++openDetailToken;
 
-  const hasSitePlan   = !!docs.sitePlan;
-  const hasFloors     = hasDocs(docs.floors);
-  const hasUnits      = hasDocs(docs.units);
-  const hasElevations = hasDocs(docs.elevations);
+  // Start clean: no drawing tabs until we know which files exist.
+  ['siteplan','floorplan','units','elevations'].forEach(t=>setTabAvailable(t, false));
+  document.getElementById('d-siteplan-wrap').innerHTML = '';
+  buildDocSection('d-floor-row', 'd-floorplan-wrap',  []);
+  buildDocSection('d-unit-row',  'd-units-wrap',      []);
+  buildDocSection('d-elev-row',  'd-elevations-wrap', []);
 
-  setTabAvailable('siteplan',   hasSitePlan);
-  setTabAvailable('floorplan',  hasFloors);
-  setTabAvailable('units',      hasUnits);
-  setTabAvailable('elevations', hasElevations);
+  resolveProjectDocs(p).then(found=>{
+    if(token !== openDetailToken) return;   // visitor opened a different project
 
-  const siteWrap = document.getElementById('d-siteplan-wrap');
-  if(hasSitePlan) buildPdfViewer(siteWrap, 'Site Plan', docs.sitePlan);
-  else siteWrap.innerHTML = '';
+    const hasSitePlan   = hasDocs(found.sitePlan);
+    const hasFloors     = hasDocs(found.floors);
+    const hasUnits      = hasDocs(found.units);
+    const hasElevations = hasDocs(found.elevations);
 
-  // Floor Plans, Individual Units and Elevations all work the same way:
-  // a row of buttons, each swapping which PDF the viewer below shows.
-  // Passing an empty list clears the row and the viewer.
-  buildDocSection('d-floor-row', 'd-floorplan-wrap',  hasFloors     ? docs.floors     : []);
-  buildDocSection('d-unit-row',  'd-units-wrap',      hasUnits      ? docs.units      : []);
-  buildDocSection('d-elev-row',  'd-elevations-wrap', hasElevations ? docs.elevations : []);
+    setTabAvailable('siteplan',   hasSitePlan);
+    setTabAvailable('floorplan',  hasFloors);
+    setTabAvailable('units',      hasUnits);
+    setTabAvailable('elevations', hasElevations);
+
+    if(hasSitePlan){
+      buildPdfViewer(document.getElementById('d-siteplan-wrap'), 'Site Plan', found.sitePlan[0].file);
+    }
+
+    // Floor Plans, Individual Units and Elevations all work the same way:
+    // a row of buttons, each swapping which PDF the viewer below shows.
+    // A list with one drawing hides the row; an empty list clears both.
+    buildDocSection('d-floor-row', 'd-floorplan-wrap',  found.floors);
+    buildDocSection('d-unit-row',  'd-units-wrap',      found.units);
+    buildDocSection('d-elev-row',  'd-elevations-wrap', found.elevations);
+  });
 
   document.getElementById('d-specs').innerHTML = specsFor(p).map(([k,v])=>`<li><span>${k}</span><b>${v}</b></li>`).join('');
 

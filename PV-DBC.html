@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Perspective Views - Digital Business Card</title>
-<link rel="icon" type="image/png" href="images/logo.png">
+<link rel="icon" type="image/png" href="images/logolarge.png">
 <style>
   :root{
     --bg:#0d1526;
@@ -34,11 +34,12 @@
   /* ===== LOGO / HEADER ===== */
   .header{
     text-align:center;
-    padding:36px 24px 10px;
+    padding:32px 24px 16px;
   }
   .header img.logo{
-    max-width:140px;
-    max-height:140px;
+    width:100%;
+    max-width:340px;
+    height:auto;
     object-fit:contain;
   }
   .header h1{
@@ -198,16 +199,15 @@
   .qr-section p{font-size:0.78rem;color:var(--muted);margin-top:12px;}
   .qr-wrap{
     display:inline-block;
-    background:#ffffff;
-    padding:10px;
+    padding:0;
     border-radius:10px;
+    overflow:hidden;
     box-shadow:0 4px 14px rgba(0,0,0,0.25);
   }
   .qr-wrap img{
     display:block;
-    width:100px;
-    height:100px;
-    border-radius:2px;
+    width:150px;
+    height:150px;
   }
 </style>
 </head>
@@ -217,9 +217,7 @@
 
   <!-- ===== LOGO / COMPANY NAME ===== -->
   <div class="header">
-    <img class="logo" src="images/logo.png" alt="Company Logo">
-    <h1>Perspective Views</h1>
-    <p class="tagline"></p>
+    <img class="logo" src="images/logo.png" alt="Perspective Views - Architectural Design">
   </div>
 
   <!-- ===== QUICK ACTIONS ===== -->
@@ -274,8 +272,8 @@
   <!-- ===== QR CODE (points to this page once it's published online) ===== -->
   <div class="qr-section">
     <div class="qr-wrap">
-      <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&margin=0&color=13-21-38&bgcolor=255-255-255&data=https://perspectiveviewsworks.github.io/PV-DBC.html"
-           alt="Scan QR Code">
+      <!-- Replace with your custom branded QR code image (e.g. images/qr-code.png) -->
+      <img src="images/QR.png" alt="Scan QR Code">
     </div>
     <p>Scan to save this card / visit our website</p>
   </div>

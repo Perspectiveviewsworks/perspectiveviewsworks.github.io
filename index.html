@@ -293,6 +293,11 @@
     display:flex;align-items:center;gap:10px;
   }
   .pdf-titlebar .pdf-title svg{width:16px;height:16px;stroke:var(--gold);flex:none;}
+  .pdf-titlebar-actions a{
+    color:var(--gold-bright);font-size:12px;letter-spacing:.2px;margin-left:18px;
+    transition:color .2s ease;
+  }
+  .pdf-titlebar-actions a:hover{color:var(--cream);}
 
   /* --- toolbar --- */
   .pdf-toolbar{
@@ -525,6 +530,7 @@
       <div id="d-siteplan-wrap"></div>
     </div>
     <div class="tab-panel" data-panel="floorplan">
+      <div class="unit-row" id="d-floor-row"></div>
       <p class="pdf-hint">Use the controls to zoom, rotate, or view fullscreen. Drag the drawing to pan, or hold Ctrl (⌘ on Mac) and scroll to zoom.</p>
       <div id="d-floorplan-wrap"></div>
     </div>
@@ -534,6 +540,7 @@
       <div id="d-units-wrap"></div>
     </div>
     <div class="tab-panel" data-panel="elevations">
+      <div class="unit-row" id="d-elev-row"></div>
       <p class="pdf-hint">Use the controls to zoom, rotate, or view fullscreen. Drag the drawing to pan, or hold Ctrl (⌘ on Mac) and scroll to zoom.</p>
       <div id="d-elevations-wrap"></div>
     </div>
@@ -634,60 +641,112 @@ const sectionsMeta = [
 
    YOUR OWN PDFs  (plans/<id>/...):
         plans/207-Connaught/site-plan.pdf
-        plans/207-Connaught/floor-plan.pdf
-        plans/207-Connaught/elevations.pdf
-        plans/207-Connaught/unit-1.pdf, unit-2.pdf, unit-3.pdf ...
-   Each PDF opens in an embedded viewer with the browser's own zoom
-   controls built in. The number of unit PDFs a house has is set by
-   the SECOND number in makeUnits(id, N) below — change N to match
-   how many individual unit PDFs that project actually has.
+        plans/207-Connaught/floor-1.pdf, floor-2.pdf, ...
+        plans/207-Connaught/elevation-north.pdf, elevation-south.pdf,
+                            elevation-east.pdf,  elevation-west.pdf
+        plans/207-Connaught/unit-1.pdf, unit-2.pdf, ...
+   Each PDF opens in the site's own viewer (zoom, pages, rotate, fullscreen).
+   How many buttons each tab shows is set per project below:
+        floors:makeFloors('207-Connaught',2)              -> Floor 1, Floor 2
+        units:makeUnits('207-Connaught',3)                -> Unit 1, Unit 2, Unit 3
+        elevations:makeElevations('207-Connaught',ALL_FACES) -> N / S / E / W
+   If a tab only has one drawing, the button row hides itself automatically.
    ================================================================ */
 
 const img = (planId, file) => `images/${planId}/${file}.jpg`;
 const doc = (planId, file) => `plans/${planId}/${file}.pdf`;
+
+/* ---- Section builders ----
+   Each builds the row of buttons shown above the viewer, plus the PDF each
+   button opens. Change the numbers / labels to match what each project has.
+
+   makeFloors(id, 2)  -> "Floor 1", "Floor 2"
+                         plans/<id>/floor-1.pdf, floor-2.pdf
+   makeUnits(id, 3)   -> "Unit 1", "Unit 2", "Unit 3"
+                         plans/<id>/unit-1.pdf, unit-2.pdf, unit-3.pdf
+   makeElevations(id, ['North','South','East','West'])
+                      -> "North", "South", "East", "West"
+                         plans/<id>/elevation-north.pdf, elevation-south.pdf, ...
+
+   You can also write the list by hand for custom names, e.g.
+     floors:[{label:'Basement', file:doc('16-West','floor-basement')},
+             {label:'Ground',   file:doc('16-West','floor-ground')}]
+*/
+const makeFloors = (planId, count) =>
+  Array.from({length:count}, (_,i)=>({label:`Floor ${i+1}`, file:doc(planId, `floor-${i+1}`)}));
+
 const makeUnits = (planId, count) =>
   Array.from({length:count}, (_,i)=>({label:`Unit ${i+1}`, file:doc(planId, `unit-${i+1}`)}));
+
+const makeElevations = (planId, faces) =>
+  faces.map(f=>({label:f, file:doc(planId, `elevation-${f.toLowerCase().replace(/\s+/g,'-')}`)}));
+
+const ALL_FACES = ['North','South','East','West'];
 
 const plans = [
   {id:'207-Connaught', name:'Connaught Ave, North York', category:'compact', sqft:4758, beds:8, baths:8, stories:2,
    desc:'',
    hero:img('207-Connaught','hero'), exterior:img('207-Connaught','exterior'),
-   docs:{ sitePlan:doc('207-Connaught','site-plan'), floorPlan:doc('207-Connaught','floor-plan'), elevations:doc('207-Connaught','elevations'), units:makeUnits('207-Connaught',1) }},
+   docs:{ sitePlan:doc('207-Connaught','site-plan'),
+          floors:makeFloors('207-Connaught',2),
+          elevations:makeElevations('207-Connaught',ALL_FACES),
+          units:makeUnits('207-Connaught',1) }},
 
   {id:'168-Alma', name:'Alma St, Guelph', category:'compact', sqft:5533, beds:12, baths:5, stories:2,
    desc:'',
    hero:img('168-Alma','hero'), exterior:img('168-Alma','exterior'),
-   docs:{ sitePlan:doc('168-Alma','site-plan'), floorPlan:doc('168-Alma','floor-plan'), elevations:doc('168-Alma','elevations'), units:makeUnits('168-Alma',1) }},
+   docs:{ sitePlan:doc('168-Alma','site-plan'),
+          floors:makeFloors('168-Alma',2),
+          elevations:makeElevations('168-Alma',ALL_FACES),
+          units:makeUnits('168-Alma',1) }},
 
   {id:'162-Alma', name:'Alma St, Guelph', category:'compact', sqft:11797, beds:19, baths:19, stories:2.5,
    desc:'',
    hero:img('162-Alma','hero'), exterior:img('162-Alma','exterior'),
-   docs:{ sitePlan:doc('162-Alma','site-plan'), floorPlan:doc('162-Alma','floor-plan'), elevations:doc('162-Alma','elevations'), units:makeUnits('162-Alma',1) }},
+   docs:{ sitePlan:doc('162-Alma','site-plan'),
+          floors:makeFloors('162-Alma',2),
+          elevations:makeElevations('162-Alma',ALL_FACES),
+          units:makeUnits('162-Alma',1) }},
 
   {id:'60-Cannon', name:'Cannon Crescent, Brampton', category:'compact', sqft:4133, beds:8, baths:8, stories:2,
    desc:'',
    hero:img('60-Cannon','hero'), exterior:img('60-Cannon','exterior'),
-   docs:{ sitePlan:doc('60-Cannon','site-plan'), floorPlan:doc('60-Cannon','floor-plan'), elevations:doc('60-Cannon','elevations'), units:makeUnits('60-Cannon',1) }},
+   docs:{ sitePlan:doc('60-Cannon','site-plan'),
+          floors:makeFloors('60-Cannon',2),
+          elevations:makeElevations('60-Cannon',ALL_FACES),
+          units:makeUnits('60-Cannon',1) }},
 
   {id:'16-West', name:'West St, Brampton', category:'compact', sqft:4133, beds:8, baths:8, stories:2,
    desc:'',
    hero:img('16-West','hero'), exterior:img('16-West','exterior'),
-   docs:{ sitePlan:doc('16-West','site-plan'), floorPlan:doc('16-West','floor-plan'), elevations:doc('16-West','elevations'), units:makeUnits('16-West',1) }},
+   docs:{ sitePlan:doc('16-West','site-plan'),
+          floors:makeFloors('16-West',2),
+          elevations:makeElevations('16-West',ALL_FACES),
+          units:makeUnits('16-West',1) }},
 
   {id:'50-White', name:'White Ave, Welland', category:'compact', sqft:4133, beds:8, baths:8, stories:2,
    desc:'',
    hero:img('50-White','hero'), exterior:img('50-White','exterior'),
-   docs:{ sitePlan:doc('50-White','site-plan'), floorPlan:doc('50-White','floor-plan'), elevations:doc('50-White','elevations'), units:makeUnits('50-White',1) }},
+   docs:{ sitePlan:doc('50-White','site-plan'),
+          floors:makeFloors('50-White',2),
+          elevations:makeElevations('50-White',ALL_FACES),
+          units:makeUnits('50-White',1) }},
 
   {id:'266-Barrie', name:'Barrie St, Bradford', category:'compact', sqft:4133, beds:8, baths:8, stories:2,
    desc:'',
    hero:img('266-Barrie','hero'), exterior:img('266-Barrie','exterior'),
-   docs:{ sitePlan:doc('266-Barrie','site-plan'), floorPlan:doc('266-Barrie','floor-plan'), elevations:doc('266-Barrie','elevations'), units:makeUnits('266-Barrie',1) }},
+   docs:{ sitePlan:doc('266-Barrie','site-plan'),
+          floors:makeFloors('266-Barrie',2),
+          elevations:makeElevations('266-Barrie',ALL_FACES),
+          units:makeUnits('266-Barrie',1) }},
 
   {id:'70-Wellington', name:'Wellington St S, Hamilton', category:'compact', sqft:4133, beds:8, baths:8, stories:2,
    desc:'',
    hero:img('70-Wellington','hero'), exterior:img('70-Wellington','exterior'),
-   docs:{ sitePlan:doc('70-Wellington','site-plan'), floorPlan:doc('70-Wellington','floor-plan'), elevations:doc('70-Wellington','elevations'), units:makeUnits('70-Wellington',1) }},
+   docs:{ sitePlan:doc('70-Wellington','site-plan'),
+          floors:makeFloors('70-Wellington',2),
+          elevations:makeElevations('70-Wellington',ALL_FACES),
+          units:makeUnits('70-Wellington',1) }},
 
 ];
 /* ============== END OF HOUSE DATA — don't need to edit below this line ============== */
@@ -836,6 +895,10 @@ function buildPdfViewer(container, title, fileUrl){
   <div class="pdf-card">
     <div class="pdf-titlebar">
       <span class="pdf-title">${PDF_ICONS.doc}${title}</span>
+      <span class="pdf-titlebar-actions">
+        <a href="${fileUrl}" target="_blank" rel="noopener noreferrer">Open in New Tab</a>
+        <a href="${fileUrl}" download>Download</a>
+      </span>
     </div>
     <div class="pdf-toolbar">
       <div class="pdf-tool-group">
@@ -854,7 +917,6 @@ function buildPdfViewer(container, title, fileUrl){
       <div class="pdf-tool-group">
         <button class="pdf-btn" data-act="rotate" title="Rotate" aria-label="Rotate">${PDF_ICONS.rotate}</button>
         <button class="pdf-btn" data-act="fullscreen" title="Fullscreen" aria-label="Fullscreen">${PDF_ICONS.expand}</button>
-        <a class="pdf-btn" href="${fileUrl}" download title="Download" aria-label="Download">${PDF_ICONS.download}</a>
       </div>
     </div>
     <div class="pdf-stage" data-act="stage">
@@ -936,12 +998,26 @@ function buildPdfViewer(container, title, fileUrl){
     queueRender(pageNum);
   }
 
+  // When a viewer is built inside a hidden tab, the stage measures 0px.
+  // Fall back to the nearest visible container so the first fit is correct.
+  function availableWidth(){
+    let w = stage.clientWidth;
+    if(w > 0) return w - 56;
+    const fallback = container.closest('.wrap') || container.parentElement;
+    w = fallback ? fallback.clientWidth : 0;
+    return (w > 0 ? w : 900) - 56;
+  }
+  function availableHeight(){
+    const h = stage.clientHeight;
+    if(h > 0) return h - 56;
+    return Math.round(window.innerHeight * 0.74) - 56;
+  }
+
   function fitWidth(){
     if(!pdfDoc) return;
     pdfDoc.getPage(pageNum).then(page=>{
       const base = page.getViewport({scale:1, rotation:rotation});
-      const avail = stage.clientWidth - 56;
-      setScale(avail / base.width);
+      setScale(availableWidth() / base.width);
     });
   }
 
@@ -949,11 +1025,12 @@ function buildPdfViewer(container, title, fileUrl){
     if(!pdfDoc) return;
     pdfDoc.getPage(pageNum).then(page=>{
       const base = page.getViewport({scale:1, rotation:rotation});
-      const aw = stage.clientWidth  - 56;
-      const ah = stage.clientHeight - 56;
-      setScale(Math.min(aw/base.width, ah/base.height));
+      setScale(Math.min(availableWidth()/base.width, availableHeight()/base.height));
     });
   }
+
+  // Lets the tab switcher re-fit a viewer once its panel actually becomes visible.
+  container._pdfRefit = fitWidth;
 
   // ----- toolbar wiring -----
   container.addEventListener('click', e=>{
@@ -1029,6 +1106,38 @@ function buildPdfViewer(container, title, fileUrl){
   });
 }
 
+/* Renders a row of section buttons (Floor 1 / Floor 2, Unit 1 / Unit 2,
+   North / South / East / West ...) above a single PDF viewer. Clicking a
+   button loads that section's PDF into the viewer below. */
+function buildDocSection(rowId, wrapId, items){
+  const row  = document.getElementById(rowId);
+  const wrap = document.getElementById(wrapId);
+  if(!row || !wrap) return;
+
+  if(!items || !items.length){
+    row.innerHTML = '';
+    wrap.innerHTML = '';
+    return;
+  }
+
+  // With only one drawing there's nothing to switch between, so skip the row.
+  row.innerHTML = items.length > 1
+    ? items.map((it,i)=>
+        `<button class="cat-btn sec-btn ${i===0?'active':''}" data-file="${it.file}" data-label="${it.label}">${it.label}</button>`
+      ).join('')
+    : '';
+
+  buildPdfViewer(wrap, items[0].label, items[0].file);
+
+  row.querySelectorAll('.sec-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      row.querySelectorAll('.sec-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      buildPdfViewer(wrap, btn.dataset.label, btn.dataset.file);
+    });
+  });
+}
+
 function openDetail(id){
   const p = plans.find(x=>x.id===id);
   if(!p) return;
@@ -1057,22 +1166,13 @@ function openDetail(id){
   document.getElementById('d-exterior-img').src = p.exterior;
   document.getElementById('d-exterior-img').alt = p.name + ' exterior';
 
-  buildPdfViewer(document.getElementById('d-siteplan-wrap'),   'Site Plan',  p.docs.sitePlan);
-  buildPdfViewer(document.getElementById('d-floorplan-wrap'),  'Floor Plan', p.docs.floorPlan);
-  buildPdfViewer(document.getElementById('d-elevations-wrap'), 'Elevations', p.docs.elevations);
+  buildPdfViewer(document.getElementById('d-siteplan-wrap'), 'Site Plan', p.docs.sitePlan);
 
-  const unitRow = document.getElementById('d-unit-row');
-  unitRow.innerHTML = p.docs.units.map((u,i)=>
-    `<button class="cat-btn unit-btn ${i===0?'active':''}" data-file="${u.file}" data-label="${u.label}">${u.label}</button>`
-  ).join('');
-  buildPdfViewer(document.getElementById('d-units-wrap'), p.docs.units[0].label, p.docs.units[0].file);
-  unitRow.querySelectorAll('.unit-btn').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      unitRow.querySelectorAll('.unit-btn').forEach(b=>b.classList.remove('active'));
-      btn.classList.add('active');
-      buildPdfViewer(document.getElementById('d-units-wrap'), btn.dataset.label, btn.dataset.file);
-    });
-  });
+  // Floor Plans, Individual Units and Elevations all work the same way:
+  // a row of buttons, each swapping which PDF the viewer below shows.
+  buildDocSection('d-floor-row', 'd-floorplan-wrap',  p.docs.floors);
+  buildDocSection('d-unit-row',  'd-units-wrap',      p.docs.units);
+  buildDocSection('d-elev-row',  'd-elevations-wrap', p.docs.elevations);
 
   document.getElementById('d-specs').innerHTML = specsFor(p).map(([k,v])=>`<li><span>${k}</span><b>${v}</b></li>`).join('');
 
@@ -1098,6 +1198,15 @@ document.getElementById('d-tabs').addEventListener('click', e=>{
   btn.classList.add('active');
   const tab = btn.dataset.tab;
   document.querySelectorAll('.tab-panel').forEach(p=>p.classList.toggle('active', p.dataset.panel===tab));
+
+  // A viewer built inside a hidden panel couldn't measure itself, so re-fit
+  // it to width now that the panel is actually on screen.
+  const panel = document.querySelector(`.tab-panel[data-panel="${tab}"]`);
+  if(panel){
+    panel.querySelectorAll('[id$="-wrap"]').forEach(w=>{
+      if(typeof w._pdfRefit === 'function') setTimeout(w._pdfRefit, 40);
+    });
+  }
 });
 
 const headerEl = document.getElementById('site-header');

@@ -118,15 +118,15 @@
     transition:color 0.15s ease;
   }
 
-  /* ===== LEADERSHIP (single boss) ===== */
+  /* ===== MATTHEW: PROFILE + CONTACT + BOOKING (one section) ===== */
   .boss-section{
-    padding:20px 24px;
+    padding:22px 24px 24px;
     border-top:1px solid var(--border);
   }
   .boss-section h3{
     font-size:0.78rem;
     color:var(--gold);
-    margin-bottom:14px;
+    margin-bottom:16px;
     text-transform:uppercase;
     letter-spacing:0.6px;
   }
@@ -134,6 +134,7 @@
     display:flex;
     align-items:center;
     gap:14px;
+    margin-bottom:16px;
   }
   .boss img{
     width:60px;height:60px;
@@ -142,69 +143,64 @@
   }
   .boss .name{font-weight:600;font-size:0.95rem;color:var(--text);}
   .boss .title{font-size:0.8rem;color:var(--muted);margin-top:2px;}
-  .boss-contact{
-    margin-left:auto;
+
+  /* Call / Email: plain rows separated by lines, same look as the company details */
+  .boss-rows{margin:0 -10px;}
+  .boss-rows a{
     display:flex;
-    flex-direction:column;
-    gap:6px;
-    align-items:flex-end;
-  }
-  .boss-contact a{
+    align-items:center;
+    gap:12px;
+    padding:13px 10px;
+    border-top:1px solid var(--border);
+    border-radius:6px;
+    font-size:0.9rem;
+    color:var(--muted);
     text-decoration:none;
-    color:var(--gold);
-    font-size:0.78rem;
-    border:1px solid var(--gold);
-    padding:4px 10px;
-    border-radius:5px;
-    cursor:pointer;
+    -webkit-tap-highlight-color:transparent;
     transition:background 0.15s ease, color 0.15s ease;
   }
-  .boss-contact a:hover{
-    background:var(--gold);
-    color:var(--bg);
+  .boss-rows a:last-child{border-bottom:1px solid var(--border);}
+  .boss-rows .label{
+    color:var(--text);
+    font-weight:600;
+    min-width:78px;
+    font-size:0.78rem;
+    text-transform:uppercase;
+    letter-spacing:0.4px;
+    transition:color 0.15s ease;
   }
 
-  /* ===== BOOK A MEETING ===== */
-  .booking-section{
-    padding:20px 24px 22px;
-    border-top:1px solid var(--border);
-  }
-  .booking-section h3{
-    font-size:0.78rem;
-    color:var(--gold);
-    margin-bottom:6px;
-    text-transform:uppercase;
-    letter-spacing:0.6px;
-  }
-  .booking-section p{
-    font-size:0.82rem;
-    color:var(--muted);
-    margin-bottom:14px;
-  }
-  .booking-buttons{
+  /* Book a meeting: one compact joined button with three options */
+  .book-title{margin-top:22px;}
+  .book-options{
     display:flex;
-    gap:10px;
+    border:1px solid var(--gold);
+    border-radius:8px;
+    overflow:hidden;
   }
-  .booking-buttons a{
+  .book-options a{
     flex:1;
     text-align:center;
     padding:11px 4px;
-    border-radius:6px;
-    text-decoration:none;
-    font-weight:600;
-    font-size:0.8rem;
-    letter-spacing:0.2px;
-    border:1px solid var(--gold);
     color:var(--gold);
-    background:transparent;
-    cursor:pointer;
-    transition:background 0.2s ease, color 0.2s ease, transform 0.15s ease;
+    font-weight:600;
+    font-size:0.82rem;
+    letter-spacing:0.2px;
+    text-decoration:none;
+    -webkit-tap-highlight-color:transparent;
+    transition:background 0.2s ease, color 0.2s ease;
   }
-  .booking-buttons a:hover,
-  .booking-buttons a:focus-visible{
-    background:var(--gold);
-    color:var(--bg);
-    transform:translateY(-1px);
+  .book-options a + a{border-left:1px solid rgba(220,184,96,0.4);}
+  .book-options a:focus-visible,
+  .boss-rows a:focus-visible{
+    outline:2px solid var(--gold);
+    outline-offset:-2px;
+  }
+  /* Hover only on devices that really hover, so phones don't get a stuck faded button after a tap */
+  @media (hover:hover){
+    .boss-rows a:hover{background:rgba(212,166,86,0.08);color:var(--text);}
+    .boss-rows a:hover .label{color:var(--gold);}
+    .book-options a:hover{background:var(--gold);color:var(--bg);}
   }
 
   /* ===== SOCIALS ===== */
@@ -291,7 +287,7 @@
     </a>
   </div>
 
-  <!-- ===== LEADERSHIP (single boss) ===== -->
+  <!-- ===== LEADERSHIP + BOOKING ===== -->
   <div class="boss-section">
     <h3>Leadership</h3>
     <div class="boss">
@@ -300,17 +296,15 @@
         <div class="name">Matthew Ribau</div>
         <div class="title">CEO / Founder</div>
       </div>
-      <div class="boss-contact">
-        <a href="tel:+16472552235">Call</a>
-        <a href="mailto:matthew@perspectiveviews.com">Email</a>
-      </div>
     </div>
-  </div>
 
-  <!-- ===== BOOK A MEETING WITH MATTHEW ===== -->
-  <div class="booking-section">
-    <h3>Book a meeting</h3>
-    <div class="booking-buttons">
+    <div class="boss-rows">
+      <a href="tel:+16472552235"><span class="label">Call</span> +1 (647) 255-2235</a>
+      <a href="mailto:matthew@perspectiveviews.com"><span class="label">Email</span> matthew@perspectiveviews.com</a>
+    </div>
+
+    <h3 class="book-title">Book a meeting</h3>
+    <div class="book-options">
       <a href="https://calendar.app.google/iftBSbf2AAfHPu4W7" target="_blank" rel="noopener">In person</a>
       <a href="https://calendar.app.google/azwvRGxyJZF1WJzg6" target="_blank" rel="noopener">Virtual</a>
       <a href="https://calendar.app.google/SVYY69NWHpUGiu1W7" target="_blank" rel="noopener">Phone</a>

@@ -283,9 +283,9 @@
     <a class="row" href="https://perspectiveviewsworks.github.io" target="_blank">
       <span class="label">Portfolio</span> https://perspectiveviewsworks.github.io
     </a>
-    <!-- Default is Google Maps; the script below switches it to Apple Maps on iPhone/iPad/Mac -->
+    <!-- Opens the exact business listing in Google Maps; the script below switches it to Apple Maps on iPhone/iPad/Mac -->
     <a class="row" id="address-link"
-       href="https://www.google.com/maps/search/?api=1&query=5359+Timberlea+Blvd+Unit+23+Mississauga+Ontario+L4W+4N5"
+       href="https://www.google.com/maps/place/Perspective+Views+Inc./@43.6311885,-79.6420061,17z/data=!4m6!3m5!1s0x882c9b8f5655ac23:0xc8e5507d288bf830!8m2!3d43.6310956!4d-79.6422976!16s%2Fg%2F11hbfhvm4_"
        target="_blank" rel="noopener">
       <span class="label">Address</span> 5359 Timberlea Blvd. Unit #23, Mississauga, Ontario L4W 4N5
     </a>
@@ -347,10 +347,8 @@
     var isIPadOS = /Macintosh/.test(ua) && navigator.maxTouchPoints > 1;
     var isMac = /Macintosh/.test(ua);
     if (isIOS || isIPadOS || isMac) {
-      link.href = 'https://maps.apple.com/?q=' +
-        encodeURIComponent('Perspective Views') +
-        '&address=' +
-        encodeURIComponent('5359 Timberlea Blvd Unit 23, Mississauga, ON L4W 4N5');
+      link.href = 'https://maps.apple.com/?ll=43.6310956,-79.6422976&q=' +
+        encodeURIComponent('Perspective Views Inc.');
       link.removeAttribute('target'); // lets iOS hand the link straight to the Maps app
     }
   })();

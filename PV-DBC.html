@@ -55,10 +55,12 @@
   }
 
   /* ===== ACTION BUTTONS ===== */
+  .top-actions{
+    padding:22px 24px 24px;
+  }
   .action-buttons{
     display:flex;
     gap:12px;
-    padding:22px 24px 22px;
   }
   .action-buttons a{
     flex:1;
@@ -120,7 +122,7 @@
 
   /* ===== MATTHEW: PROFILE + CONTACT + BOOKING (one section) ===== */
   .boss-section{
-    padding:22px 24px 24px;
+    padding:22px 24px 12px;
     border-top:1px solid var(--border);
   }
   .boss-section h3{
@@ -159,7 +161,7 @@
     -webkit-tap-highlight-color:transparent;
     transition:background 0.15s ease, color 0.15s ease;
   }
-  .boss-rows a:last-child{border-bottom:1px solid var(--border);}
+  .boss-rows a:last-child{border-bottom:none;}
   .boss-rows .label{
     color:var(--text);
     font-weight:600;
@@ -170,37 +172,44 @@
     transition:color 0.15s ease;
   }
 
-  /* Book a meeting: one compact joined button with three options */
-  .book-title{margin-top:22px;}
+  /* Book a meeting: same look as the Call Us / Email Us buttons */
+  .book-label{
+    font-size:0.78rem;
+    color:var(--gold);
+    margin:24px 0 12px;
+    text-transform:uppercase;
+    letter-spacing:0.6px;
+    font-weight:700;
+  }
   .book-options{
     display:flex;
-    border:1px solid var(--gold);
-    border-radius:8px;
-    overflow:hidden;
+    gap:12px;
   }
   .book-options a{
     flex:1;
     text-align:center;
-    padding:11px 4px;
-    color:var(--gold);
-    font-weight:600;
-    font-size:0.82rem;
-    letter-spacing:0.2px;
+    padding:12px 0;
+    border-radius:6px;
     text-decoration:none;
+    font-weight:600;
+    font-size:0.85rem;
+    letter-spacing:0.3px;
+    border:1px solid var(--gold);
+    color:var(--gold);
+    background:transparent;
     -webkit-tap-highlight-color:transparent;
-    transition:background 0.2s ease, color 0.2s ease;
+    transition:background 0.2s ease, color 0.2s ease, transform 0.15s ease;
   }
-  .book-options a + a{border-left:1px solid rgba(220,184,96,0.4);}
   .book-options a:focus-visible,
   .boss-rows a:focus-visible{
     outline:2px solid var(--gold);
-    outline-offset:-2px;
+    outline-offset:2px;
   }
   /* Hover only on devices that really hover, so phones don't get a stuck faded button after a tap */
   @media (hover:hover){
     .boss-rows a:hover{background:rgba(212,166,86,0.08);color:var(--text);}
     .boss-rows a:hover .label{color:var(--gold);}
-    .book-options a:hover{background:var(--gold);color:var(--bg);}
+    .book-options a:hover{background:var(--gold);color:var(--bg);transform:translateY(-1px);}
   }
 
   /* ===== SOCIALS ===== */
@@ -260,9 +269,18 @@
   </div>
 
   <!-- ===== QUICK ACTIONS ===== -->
-  <div class="action-buttons">
-    <a class="call-btn" href="tel:+16478940889">Call Us</a>
-    <a class="email-btn" href="mailto:info@perspectiveviews.com">Email Us</a>
+  <div class="top-actions">
+    <div class="action-buttons">
+      <a class="call-btn" href="tel:+16478940889">Call Us</a>
+      <a class="email-btn" href="mailto:info@perspectiveviews.com">Email Us</a>
+    </div>
+
+    <div class="book-label">Book a meeting</div>
+    <div class="book-options">
+      <a href="https://calendar.app.google/iftBSbf2AAfHPu4W7" target="_blank" rel="noopener">In person</a>
+      <a href="https://calendar.app.google/azwvRGxyJZF1WJzg6" target="_blank" rel="noopener">Virtual</a>
+      <a href="https://calendar.app.google/SVYY69NWHpUGiu1W7" target="_blank" rel="noopener">Phone</a>
+    </div>
   </div>
 
   <!-- ===== COMPANY DETAILS ===== -->
@@ -301,13 +319,6 @@
     <div class="boss-rows">
       <a href="tel:+16472552235"><span class="label">Call</span> +1 (647) 255-2235</a>
       <a href="mailto:matthew@perspectiveviews.com"><span class="label">Email</span> matthew@perspectiveviews.com</a>
-    </div>
-
-    <h3 class="book-title">Book a meeting</h3>
-    <div class="book-options">
-      <a href="https://calendar.app.google/iftBSbf2AAfHPu4W7" target="_blank" rel="noopener">In person</a>
-      <a href="https://calendar.app.google/azwvRGxyJZF1WJzg6" target="_blank" rel="noopener">Virtual</a>
-      <a href="https://calendar.app.google/SVYY69NWHpUGiu1W7" target="_blank" rel="noopener">Phone</a>
     </div>
   </div>
 

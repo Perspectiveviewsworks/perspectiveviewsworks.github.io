@@ -164,6 +164,49 @@
     color:var(--bg);
   }
 
+  /* ===== BOOK A MEETING ===== */
+  .booking-section{
+    padding:20px 24px 22px;
+    border-top:1px solid var(--border);
+  }
+  .booking-section h3{
+    font-size:0.78rem;
+    color:var(--gold);
+    margin-bottom:6px;
+    text-transform:uppercase;
+    letter-spacing:0.6px;
+  }
+  .booking-section p{
+    font-size:0.82rem;
+    color:var(--muted);
+    margin-bottom:14px;
+  }
+  .booking-buttons{
+    display:flex;
+    gap:10px;
+  }
+  .booking-buttons a{
+    flex:1;
+    text-align:center;
+    padding:11px 4px;
+    border-radius:6px;
+    text-decoration:none;
+    font-weight:600;
+    font-size:0.8rem;
+    letter-spacing:0.2px;
+    border:1px solid var(--gold);
+    color:var(--gold);
+    background:transparent;
+    cursor:pointer;
+    transition:background 0.2s ease, color 0.2s ease, transform 0.15s ease;
+  }
+  .booking-buttons a:hover,
+  .booking-buttons a:focus-visible{
+    background:var(--gold);
+    color:var(--bg);
+    transform:translateY(-1px);
+  }
+
   /* ===== SOCIALS ===== */
   .socials{
     display:flex;
@@ -240,7 +283,10 @@
     <a class="row" href="https://perspectiveviewsworks.github.io" target="_blank">
       <span class="label">Portfolio</span> https://perspectiveviewsworks.github.io
     </a>
-    <a class="row" href="https://maps.google.com/?q=YOUR+COMPANY+ADDRESS" target="_blank">
+    <!-- Default is Google Maps; the script below switches it to Apple Maps on iPhone/iPad/Mac -->
+    <a class="row" id="address-link"
+       href="https://www.google.com/maps/search/?api=1&query=5359+Timberlea+Blvd+Unit+23+Mississauga+Ontario+L4W+4N5"
+       target="_blank" rel="noopener">
       <span class="label">Address</span> 5359 Timberlea Blvd. Unit #23, Mississauga, Ontario L4W 4N5
     </a>
   </div>
@@ -249,7 +295,7 @@
   <div class="boss-section">
     <h3>Leadership</h3>
     <div class="boss">
-      <img src="images/Matthew.png" alt="Boss Name">
+      <img src="images/Matthew.png" alt="Matthew Ribau">
       <div>
         <div class="name">Matthew Ribau</div>
         <div class="title">CEO / Founder</div>
@@ -258,6 +304,17 @@
         <a href="tel:+16472552235">Call</a>
         <a href="mailto:matthew@perspectiveviews.com">Email</a>
       </div>
+    </div>
+  </div>
+
+  <!-- ===== BOOK A MEETING WITH MATTHEW ===== -->
+  <div class="booking-section">
+    <h3>Book a meeting with Matthew</h3>
+    <p>Choose how you'd like to meet.</p>
+    <div class="booking-buttons">
+      <a href="https://calendar.app.google/iftBSbf2AAfHPu4W7" target="_blank" rel="noopener">In person</a>
+      <a href="https://calendar.app.google/azwvRGxyJZF1WJzg6" target="_blank" rel="noopener">Virtual</a>
+      <a href="https://calendar.app.google/SVYY69NWHpUGiu1W7" target="_blank" rel="noopener">Phone</a>
     </div>
   </div>
 
@@ -279,6 +336,26 @@
   </div>
 
 </div>
+
+<script>
+  // Open the address in Apple Maps on iPhone, iPad and Mac; everyone else keeps Google Maps.
+  (function () {
+    var link = document.getElementById('address-link');
+    if (!link) return;
+    var ua = navigator.userAgent || '';
+    var isIOS = /iPhone|iPad|iPod/.test(ua);
+    // iPadOS reports itself as a Mac, so check for touch support too.
+    var isIPadOS = /Macintosh/.test(ua) && navigator.maxTouchPoints > 1;
+    var isMac = /Macintosh/.test(ua);
+    if (isIOS || isIPadOS || isMac) {
+      link.href = 'https://maps.apple.com/?q=' +
+        encodeURIComponent('Perspective Views') +
+        '&address=' +
+        encodeURIComponent('5359 Timberlea Blvd Unit 23, Mississauga, ON L4W 4N5');
+      link.removeAttribute('target'); // lets iOS hand the link straight to the Maps app
+    }
+  })();
+</script>
 
 </body>
 </html>
